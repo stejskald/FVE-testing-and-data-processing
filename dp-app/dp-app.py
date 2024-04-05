@@ -1,6 +1,7 @@
 import os
 import sys
 
+from include.ControlTab import ControlTab
 from PyQt6.QtCore import QCoreApplication, QSize
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QStatusBar, QTabWidget,
@@ -75,18 +76,6 @@ class MainWindow(QMainWindow):
 
         self.controlTab = ControlTab(self)
         controlTabIdx = tabs.addTab(self.controlTab, "Ovládací panel")
-
-        self.configTab = ConfigurationTab(self)
-        configTabIdx = tabs.addTab(self.configTab, "Volba konfigurace DPS")
-
-        self.measurementTab = MeasurementTab(self)
-        measureTabIdx = tabs.addTab(self.measurementTab, "Měření")
-
-        self.terminalTab = TerminalTab(self)
-        terminalTabIdx = tabs.addTab(self.terminalTab, "Terminál")
-
-        self.databaseTab = DatabaseTab(self)
-        dbTabIdx = tabs.addTab(self.databaseTab, "Databáze")
 
         tabs.setCurrentIndex(controlTabIdx)  # DEBUG
         self.setCentralWidget(tabs)
