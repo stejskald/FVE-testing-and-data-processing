@@ -1,0 +1,34 @@
+[tool.poetry]
+name = "dp-app"
+version = "1.0.0"
+description = "The Python Desktop Application for data processing of FVE (photovoltaic power plant) testing"
+authors = ["David Stejskal <david.stej@seznam.cz>"]
+readme = "README.md"
+repository = "https://github.com/stejskald/FVE-testing-and-data-processing"
+packages = [{ include = "dp-app" }]
+include = ["icons", "UIs"]
+exclude = []
+
+[tool.poetry.dependencies]
+python = "^3.11,<3.12"
+pyqt6 = "^6.4.2"
+pyqtgraph = "^0.13.4"
+
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = "^6.5.0"
+black = "^24.3.0"
+flake8-pyproject = "^1.2.3"
+
+[tool.black]
+line-length = 120
+
+[tool.flake8]
+max-line-length = 120
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+run = "dp-app.dp-app:main"
