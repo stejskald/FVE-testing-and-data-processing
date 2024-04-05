@@ -1,11 +1,12 @@
 import os
 import sys
 
-from include.ControlTab import ControlTab
 from PyQt6.QtCore import QCoreApplication, QSize
 from PyQt6.QtGui import QAction, QIcon, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QStatusBar, QTabWidget,
                              QToolBar)
+
+from dp_app.include.ControlTab import ControlTab
 
 # relative pathing to handle situation when starting the app from different locations
 baseDir = os.path.dirname(__file__)
@@ -14,7 +15,7 @@ baseDir = os.path.dirname(__file__)
 try:
     from ctypes import windll
 
-    myappid = "cz.vut.testing-station.1-0"
+    myappid = "cz.vut.FVE-testing.1-0-0"
     windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except ImportError:
     pass
@@ -75,7 +76,7 @@ class MainWindow(QMainWindow):
         tabs.setTabPosition(QTabWidget.TabPosition.North)
 
         self.controlTab = ControlTab(self)
-        controlTabIdx = tabs.addTab(self.controlTab, "Ovládací panel")
+        controlTabIdx = tabs.addTab(self.controlTab, "Control Panel")
 
         tabs.setCurrentIndex(controlTabIdx)  # DEBUG
         self.setCentralWidget(tabs)
@@ -97,7 +98,7 @@ class MainWindow(QMainWindow):
 def main():
     app = QApplication(sys.argv)
     app.setOrganizationName("VUT")
-    app.setApplicationName("pcb-test-application")
+    app.setApplicationName("Application-for-data-processing-of-FVE")
 
     # appDataLoc = QStandardPaths.standardLocations(
     #     QStandardPaths.StandardLocation.AppDataLocation

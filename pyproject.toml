@@ -5,14 +5,14 @@ description = "The Python Desktop Application for data processing of FVE (photov
 authors = ["David Stejskal <david.stej@seznam.cz>"]
 readme = "README.md"
 repository = "https://github.com/stejskald/FVE-testing-and-data-processing"
-packages = [{ include = "dp-app" }]
+packages = [{ include = "dp_app" }]
 include = ["icons", "UIs"]
 exclude = []
 
 [tool.poetry.dependencies]
 python = "^3.11,<3.12"
-pyqt6 = "^6.4.2"
 pyqtgraph = "^0.13.4"
+pyqt6 = "^6.6.1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -31,4 +31,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-run = "dp-app.dp-app:main"
+my-script = "dp_app.app-main:main"
