@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ControlTab</class>
- <widget class="QWidget" name="ControlTab">
+ <class>ControlPanelTab</class>
+ <widget class="QWidget" name="ControlPanelTab">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -13,77 +13,54 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
-    <widget class="QLabel" name="labelTitle">
-     <property name="minimumSize">
-      <size>
-       <width>155</width>
-       <height>0</height>
-      </size>
-     </property>
-     <property name="font">
-      <font>
-       <pointsize>11</pointsize>
-       <bold>true</bold>
-      </font>
-     </property>
-     <property name="text">
-      <string>Hlavní ovládací panel</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="hLayout">
+    <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <layout class="QVBoxLayout" name="vLayoutBtns">
-       <property name="leftMargin">
-        <number>10</number>
-       </property>
-       <property name="rightMargin">
-        <number>30</number>
-       </property>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QLabel" name="labelTitle_2">
+         <property name="minimumSize">
+          <size>
+           <width>155</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>CSV Operations</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
        <item>
         <widget class="QPushButton" name="pushBtbVoltMeas">
          <property name="text">
-          <string>Spustit měření napětí</string>
+          <string>Import CSV Data</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QPushButton" name="pushBtnRS485Meas">
          <property name="text">
-          <string>Spustit test RS-485</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushBtnDiDoMeas">
-         <property name="text">
-          <string>Spustit test DI/DO</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="vSpacerBtns1">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushBtnDiDoMeas_2">
-         <property name="text">
-          <string>Spustit kompletní test</string>
+          <string>Show CSV Raw Data</string>
          </property>
         </widget>
        </item>
@@ -103,130 +80,160 @@
       </layout>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="vLayoutStateBars">
+      <layout class="QVBoxLayout" name="vLayoutBtns_2">
+       <property name="leftMargin">
+        <number>20</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
        <item>
-        <layout class="QVBoxLayout" name="vLayoutStateCfg">
-         <item>
-          <widget class="QLabel" name="labelStateCfg">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Stav konfigurace testované DPS</string>
-           </property>
-           <property name="buddy">
-            <cstring>textEditStateCfg</cstring>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTextEdit" name="textEditStateCfg">
-           <property name="maximumSize">
-            <size>
-             <width>500</width>
-             <height>100</height>
-            </size>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-           <property name="placeholderText">
-            <string>Nezvolena</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="vLayoutStateMeas">
-         <item>
-          <widget class="QLabel" name="labelStateMeas">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Stav měření</string>
-           </property>
-           <property name="buddy">
-            <cstring>textEditStateMeas</cstring>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTextEdit" name="textEditStateMeas">
-           <property name="maximumSize">
-            <size>
-             <width>500</width>
-             <height>100</height>
-            </size>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-           <property name="placeholderText">
-            <string>Nespuštěno</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QVBoxLayout" name="vLayoutStateDB">
-         <item>
-          <widget class="QLabel" name="labelStateDB">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Stav databáze</string>
-           </property>
-           <property name="buddy">
-            <cstring>textEditStateDB</cstring>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QTextEdit" name="textEditStateDB">
-           <property name="maximumSize">
-            <size>
-             <width>500</width>
-             <height>100</height>
-            </size>
-           </property>
-           <property name="readOnly">
-            <bool>true</bool>
-           </property>
-           <property name="placeholderText">
-            <string>Nepřipojena</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <spacer name="vSpacerStateBars">
-         <property name="maximumSize">
+        <widget class="QLabel" name="labelTitle_3">
+         <property name="minimumSize">
           <size>
-           <width>16777215</width>
-           <height>100</height>
+           <width>155</width>
+           <height>0</height>
           </size>
          </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>Graph Analysis</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line_2">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushBtbVoltMeas_2">
+         <property name="text">
+          <string>Show XY Graph</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushBtnRS485Meas_2">
+         <property name="text">
+          <string>Show PQ Diagram</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushBtnDiDoMeas_3">
+         <property name="text">
+          <string>Active PQ Diagram</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="vSpacerBtns1_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushBtnDiDoMeas_4">
+         <property name="text">
+          <string>Measured Profiles</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="vSpacerBtns2_2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
            <width>20</width>
-           <height>18</height>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QVBoxLayout" name="vLayoutBtns_3">
+       <property name="leftMargin">
+        <number>20</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QLabel" name="labelTitle_4">
+         <property name="minimumSize">
+          <size>
+           <width>155</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>11</pointsize>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LeftToRight</enum>
+         </property>
+         <property name="text">
+          <string>Reports</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="Line" name="line_3">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushBtbVoltMeas_3">
+         <property name="text">
+          <string>Generate Final Report</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="vSpacerBtns2_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>
@@ -253,11 +260,6 @@
  <tabstops>
   <tabstop>pushBtbVoltMeas</tabstop>
   <tabstop>pushBtnRS485Meas</tabstop>
-  <tabstop>pushBtnDiDoMeas</tabstop>
-  <tabstop>pushBtnDiDoMeas_2</tabstop>
-  <tabstop>textEditStateCfg</tabstop>
-  <tabstop>textEditStateMeas</tabstop>
-  <tabstop>textEditStateDB</tabstop>
  </tabstops>
  <resources/>
  <connections/>

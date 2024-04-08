@@ -1,0 +1,698 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ConfigurationTab</class>
+ <widget class="QWidget" name="ConfigurationTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>875</width>
+    <height>676</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>450</width>
+    <height>450</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <property name="locale">
+   <locale language="Czech" country="Czechia"/>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="labelGroupTitle">
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Volba konfigurace DPS:</string>
+     </property>
+     <property name="margin">
+      <number>2</number>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <layout class="QGridLayout" name="gLayoutConfig">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+     <property name="leftMargin">
+      <number>10</number>
+     </property>
+     <property name="spacing">
+      <number>10</number>
+     </property>
+     <item row="4" column="0">
+      <widget class="QLabel" name="labelConfigDesc">
+       <property name="text">
+        <string>&amp;Popis DPS:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <property name="buddy">
+        <cstring>textEditConfigDesc</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QTextEdit" name="textEditConfigDesc">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>400</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>500</width>
+         <height>500</height>
+        </size>
+       </property>
+       <property name="html">
+        <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+p, li { white-space: pre-wrap; }
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Tato přizpůsobovací DPS představuje testovací podstavec pro řídicí desku Aromatizačního systému.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelConfigDate">
+       <property name="text">
+        <string>&amp;Datum konfigurace:</string>
+       </property>
+       <property name="buddy">
+        <cstring>lineEditConfigDate</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelConfigName">
+       <property name="text">
+        <string>&amp;Název DPS:</string>
+       </property>
+       <property name="buddy">
+        <cstring>comboBoxConfigName</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelConfigParams">
+       <property name="text">
+        <string>&amp;Konfigurace DPS:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       </property>
+       <property name="buddy">
+        <cstring>dblSpinBoxDI</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelAuthorName">
+       <property name="text">
+        <string>Jméno &amp;autora:</string>
+       </property>
+       <property name="buddy">
+        <cstring>lineEditAuthor</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="comboBoxConfigName">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>500</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+       <property name="maxCount">
+        <number>10</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>Přizpůsobovací DPS pro Aromatizační systém</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+     <item row="6" column="0" colspan="2">
+      <widget class="QDialogButtonBox" name="buttonBoxConfig">
+       <property name="standardButtons">
+        <set>QDialogButtonBox::Apply|QDialogButtonBox::RestoreDefaults</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <layout class="QHBoxLayout" name="hLayoutConfigParams">
+       <item>
+        <layout class="QFormLayout" name="formLayoutConfig">
+         <item row="0" column="0">
+          <widget class="QLabel" name="labelConfigDI">
+           <property name="text">
+            <string>Počet digitálních vstupů:</string>
+           </property>
+           <property name="buddy">
+            <cstring>dblSpinBoxDI</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="labelConfigDO">
+           <property name="text">
+            <string>Počet digitálních výstupů:</string>
+           </property>
+           <property name="buddy">
+            <cstring>dblSpinBoxDO</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="labelConfigADC">
+           <property name="text">
+            <string>Počet ADC kanálů:</string>
+           </property>
+           <property name="buddy">
+            <cstring>dblSpinBoxADC_N</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QLabel" name="labelConfigGPIO">
+           <property name="text">
+            <string>Počet vstupů/výstupů GPIO expandéru:</string>
+           </property>
+           <property name="buddy">
+            <cstring>dblSpinBoxGPIO_N</cstring>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="dblSpinBoxDI">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <double>15.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>6.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QDoubleSpinBox" name="dblSpinBoxDO">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <double>15.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>2.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QDoubleSpinBox" name="dblSpinBoxADC_N">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <double>15.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>8.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QDoubleSpinBox" name="dblSpinBoxGPIO_N">
+           <property name="minimumSize">
+            <size>
+             <width>35</width>
+             <height>0</height>
+            </size>
+           </property>
+           <property name="decimals">
+            <number>0</number>
+           </property>
+           <property name="maximum">
+            <double>15.000000000000000</double>
+           </property>
+           <property name="value">
+            <double>8.000000000000000</double>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="hSpacerCfgParams">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeType">
+          <enum>QSizePolicy::Fixed</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>60</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gLayoutCfgInterfaces">
+         <item row="6" column="0">
+          <widget class="QCheckBox" name="checkBoxCfgUSART">
+           <property name="text">
+            <string>USART</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QCheckBox" name="checkBoxCfgSPI">
+           <property name="text">
+            <string>SPI</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QCheckBox" name="checkBoxCfgI2C">
+           <property name="text">
+            <string>I2C</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QCheckBox" name="checkBoxCfgRS232">
+           <property name="text">
+            <string>RS-232</string>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="checkBoxCfgRS485">
+           <property name="text">
+            <string>RS-485</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QCheckBox" name="checkBoxCfgCAN">
+           <property name="text">
+            <string>CAN</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="labelConfigInterfaces">
+           <property name="text">
+            <string>&amp;Rozhraní:</string>
+           </property>
+           <property name="buddy">
+            <cstring>checkBoxCfgRS485</cstring>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="lineEditAuthor">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>200</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="maxLength">
+        <number>40</number>
+       </property>
+       <property name="placeholderText">
+        <string>David Stejskal</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="dblSpinBoxVersion">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="locale">
+        <locale language="English" country="UnitedStates"/>
+       </property>
+       <property name="prefix">
+        <string>v</string>
+       </property>
+       <property name="decimals">
+        <number>1</number>
+       </property>
+       <property name="minimum">
+        <double>1.000000000000000</double>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDateEdit" name="lineEditConfigDate">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="displayFormat">
+        <string>dd. MM. yyyy</string>
+       </property>
+       <property name="calendarPopup">
+        <bool>true</bool>
+       </property>
+       <property name="timeSpec">
+        <enum>Qt::UTC</enum>
+       </property>
+       <property name="date">
+        <date>
+         <year>2023</year>
+         <month>5</month>
+         <day>9</day>
+        </date>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelConfigVersion">
+       <property name="text">
+        <string>&amp;Verze DPS:</string>
+       </property>
+       <property name="buddy">
+        <cstring>dblSpinBoxVersion</cstring>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <spacer name="hSpacerDesc">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>98</width>
+         <height>68</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="5" column="2">
+      <spacer name="hSpacerCfgParams_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Expanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>98</width>
+         <height>68</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="vSpacerConfig">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>91</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>comboBoxConfigName</tabstop>
+  <tabstop>lineEditAuthor</tabstop>
+  <tabstop>dblSpinBoxVersion</tabstop>
+  <tabstop>lineEditConfigDate</tabstop>
+  <tabstop>textEditConfigDesc</tabstop>
+  <tabstop>dblSpinBoxDI</tabstop>
+  <tabstop>dblSpinBoxDO</tabstop>
+  <tabstop>dblSpinBoxADC_N</tabstop>
+  <tabstop>dblSpinBoxGPIO_N</tabstop>
+  <tabstop>checkBoxCfgRS485</tabstop>
+  <tabstop>checkBoxCfgRS232</tabstop>
+  <tabstop>checkBoxCfgCAN</tabstop>
+  <tabstop>checkBoxCfgSPI</tabstop>
+  <tabstop>checkBoxCfgI2C</tabstop>
+  <tabstop>checkBoxCfgUSART</tabstop>
+ </tabstops>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>comboBoxConfigName</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>23</x>
+     <y>527</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>129</x>
+     <y>29</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>comboBoxConfigName</receiver>
+   <slot>clearEditText()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>12</x>
+     <y>524</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>164</x>
+     <y>14</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>lineEditAuthor</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>35</x>
+     <y>526</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>135</x>
+     <y>57</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>dblSpinBoxVersion</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>46</x>
+     <y>526</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>131</x>
+     <y>86</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>lineEditConfigDate</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>54</x>
+     <y>524</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>129</x>
+     <y>119</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>textEditConfigDesc</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>59</x>
+     <y>527</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>132</x>
+     <y>224</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>dblSpinBoxDI</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>66</x>
+     <y>527</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>349</x>
+     <y>347</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>dblSpinBoxDO</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>70</x>
+     <y>525</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>350</x>
+     <y>378</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>dblSpinBoxADC_N</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>527</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>351</x>
+     <y>406</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBoxConfig</sender>
+   <signal>clicked(QAbstractButton*)</signal>
+   <receiver>dblSpinBoxGPIO_N</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>79</x>
+     <y>532</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>348</x>
+     <y>433</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
