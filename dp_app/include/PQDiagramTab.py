@@ -18,16 +18,14 @@ class PQDiagramTab(QWidget, Ui_PQDiagramTab):
         channels = ["CH0", "CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7"]
         comboBoxChnlSelModel = QStringListModel(channels)
         self.comboBoxChannelSelect.setModel(comboBoxChnlSelModel)
-        self.comboBoxChannelSelect.currentTextChanged.connect(
-            self.adcChannelChanged
-        )
+        self.comboBoxChannelSelect.currentTextChanged.connect(self.adcChannelChanged)
 
         # Set background colour - default window color background
         graphBGcolor = self.palette().color(QPalette.ColorRole.Base)
-        self.graphWidget.setBackground(graphBGcolor)
-        self.graphWidget.setTitle("Měření", color="k", size="18pt")
-        # self.graphWidget.addLegend(offset=20)
-        self.graphWidget.showGrid(x=True, y=True)
+        self.PQGraph.setBackground(graphBGcolor)
+        self.PQGraph.setTitle("Měření", color="k", size="18pt")
+        # self.PQGraph.addLegend(offset=20)
+        self.PQGraph.showGrid(x=True, y=True)
 
         # Timer initialization - for plot data updating
         self.timer = QTimer()
@@ -38,30 +36,20 @@ class PQDiagramTab(QWidget, Ui_PQDiagramTab):
 
         self.pen = pg.mkPen(color="b", width=2, style=Qt.PenStyle.SolidLine)
         self.time = list(range(100))  # 100 time points
-        self.voltage = [
-            uniform(23.75, 24.15) for _ in range(100)
-        ]  # 100 data points
-        self.lineDataRef = self.graphWidget.plot(
-            self.time, self.voltage, pen=self.pen
-        )
-        self.adcChannelPlot = self.graphWidget.getPlotItem()
+        self.voltage = [uniform(23.75, 24.15) for _ in range(100)]  # 100 data points
+        self.lineDataRef = self.PQGraph.plot(self.time, self.voltage, pen=self.pen)
+        self.adcChannelPlot = self.PQGraph.getPlotItem()
         self.adcChannelPlot.setLabel("left", "napětí", units="V")
         self.adcChannelPlot.getAxis("left").label.setFont(QFont("Times", 12))
         self.adcChannelPlot.setLabel("bottom", "čas", units="s")
         self.adcChannelPlot.getAxis("bottom").label.setFont(QFont("Times", 12))
-        self.adcChannelPlot.setTitle(
-            "ADC {}".format(self.comboBoxChannelSelect.currentText())
-        )
+        self.adcChannelPlot.setTitle("ADC {}".format(self.comboBoxChannelSelect.currentText()))
 
     def adcChannelChanged(self):
-        self.adcChannelPlot.setTitle(
-            "ADC {}".format(self.comboBoxChannelSelect.currentText())
-        )
+        self.adcChannelPlot.setTitle("ADC {}".format(self.comboBoxChannelSelect.currentText()))
 
         self.voltage = [uniform(23.75, 24.15) for _ in range(100)]
-        self.lineDataRef.setData(
-            self.time, self.voltage
-        )  # Update the line data ref
+        self.lineDataRef.setData(self.time, self.voltage)  # Update the line data ref
 
     def updatePlotData(self):
         self.time = self.time[1:]  # Remove the 1st element of time vector
@@ -70,9 +58,7 @@ class PQDiagramTab(QWidget, Ui_PQDiagramTab):
         self.voltage = self.voltage[1:]  # Remove the 1st element of voltage
         self.voltage.append(uniform(23.75, 24.15))  # Add a new random value
 
-        self.lineDataRef.setData(
-            self.time, self.voltage
-        )  # Update the line data ref
+        self.lineDataRef.setData(self.time, self.voltage)  # Update the line data ref
 
     # TODO: Hardcoded random values - should be obtained from SAM D21
     def updateLineEditsVoltageData(self):

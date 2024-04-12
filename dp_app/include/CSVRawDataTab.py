@@ -4,11 +4,11 @@ from PyQt6.QtWidgets import QHeaderView, QWidget
 
 
 class CSVRawDataTab(QWidget, Ui_CSVRawDataTab):
-    def __init__(self, data, headers):  # , headers=[], parent=None
+    def __init__(self):
         super(CSVRawDataTab, self).__init__()
         self.setupUi(self)
-        # _headers = headers
 
+    def csvRawDataTabSetTableDataModel(self, data):
         # Getting the Model
         self.tableModel = TableModel(data)
 

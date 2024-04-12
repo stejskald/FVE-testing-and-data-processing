@@ -6,7 +6,12 @@ if __name__ == "__main__":
     appBaseDir = path.dirname(__file__)
 
     # Write a data_separator to the INI config file
-    ft.iniWriteSectionKeyValue(path.join(appBaseDir, "appConfig.ini"), "app.csv_data", "data_separator", ";")
+    # ft.iniWriteSectionKeyValue(path.join(appBaseDir, "appConfig.ini"), "app.csv_data", "data_separator", ";")
+
+    # # Write a date_time_format to the INI config file
+    # ft.iniWriteSectionKeyValue(
+    #     path.join(appBaseDir, "appConfig.ini"), "app.csv_data", "date_time_format", "RRRR-MM-DD HH-MM-SS"
+    # )
 
     # Write a filtered_columns to the INI config file
     ft.iniWriteSectionKeyValues(
@@ -33,6 +38,14 @@ if __name__ == "__main__":
         "data_separator",
     )
     print(f"data_separator from app.csv_data: {data_separator}")
+
+    # Read the date_time_format from the INI config file
+    date_time_format = ft.iniReadSectionKey(
+        path.join(appBaseDir, "appConfig.ini"),
+        "app.csv_data",
+        "date_time_format",
+    )
+    print(f"date_time_format from app.csv_data: {date_time_format}")
 
     # Read the filtered_columns from the INI config file
     filtered_columns = ft.iniReadSectionKey(

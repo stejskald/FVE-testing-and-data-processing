@@ -6,23 +6,47 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>668</width>
-    <height>476</height>
+    <width>765</width>
+    <height>543</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="hLayout">
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <item>
+      <layout class="QGridLayout" name="gLayout">
+       <item row="0" column="1">
+        <widget class="QLabel" name="labelXdata">
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Data on X axis:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLabel" name="labelYdata">
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Data on X axis:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
         <widget class="QComboBox" name="comboBoxXData">
          <property name="minimumSize">
           <size>
-           <width>200</width>
+           <width>150</width>
            <height>0</height>
           </size>
          </property>
@@ -34,11 +58,11 @@
          </property>
         </widget>
        </item>
-       <item>
+       <item row="1" column="2">
         <widget class="QComboBox" name="comboBoxYData">
          <property name="minimumSize">
           <size>
-           <width>200</width>
+           <width>150</width>
            <height>0</height>
           </size>
          </property>
@@ -78,16 +102,22 @@
      <property name="sizeHint" stdset="0">
       <size>
        <width>20</width>
-       <height>30</height>
+       <height>20</height>
       </size>
      </property>
     </spacer>
    </item>
    <item>
     <widget class="PlotWidget" name="XYGraph">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>400</height>
+      </size>
+     </property>
      <property name="maximumSize">
       <size>
-       <width>750</width>
+       <width>16777215</width>
        <height>500</height>
       </size>
      </property>

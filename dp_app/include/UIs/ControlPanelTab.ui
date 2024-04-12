@@ -19,7 +19,7 @@
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
-        <widget class="QLabel" name="labelTitle_2">
+        <widget class="QLabel" name="labelCSVoperations">
          <property name="minimumSize">
           <size>
            <width>155</width>
@@ -51,21 +51,21 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushBtbVoltMeas">
+        <widget class="QPushButton" name="btnImportCSV">
          <property name="text">
-          <string>Import CSV Data</string>
+          <string>&amp;Import CSV Data</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushBtnRS485Meas">
+        <widget class="QPushButton" name="btnShowCSVtable">
          <property name="text">
-          <string>Show CSV Raw Data</string>
+          <string>&amp;Show CSV Raw Data</string>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="vSpacerBtns2">
+        <spacer name="vSpacerCSVbtns">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -88,7 +88,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="labelTitle_3">
+        <widget class="QLabel" name="labelGraphAnalysis">
          <property name="minimumSize">
           <size>
            <width>155</width>
@@ -120,51 +120,21 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushBtbVoltMeas_2">
+        <widget class="QPushButton" name="btnShowXYgraph">
          <property name="text">
-          <string>Show XY Graph</string>
+          <string>Show &amp;XY Graph</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushBtnRS485Meas_2">
+        <widget class="QPushButton" name="btnShowPQdiagram">
          <property name="text">
-          <string>Show PQ Diagram</string>
+          <string>Show &amp;PQ Diagram</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushBtnDiDoMeas_3">
-         <property name="text">
-          <string>Active PQ Diagram</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="vSpacerBtns1_2">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeType">
-          <enum>QSizePolicy::Fixed</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QPushButton" name="pushBtnDiDoMeas_4">
-         <property name="text">
-          <string>Measured Profiles</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="vSpacerBtns2_2">
+        <spacer name="vSpacerGraphBtns2">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -187,7 +157,7 @@
         <number>0</number>
        </property>
        <item>
-        <widget class="QLabel" name="labelTitle_4">
+        <widget class="QLabel" name="labelReports">
          <property name="minimumSize">
           <size>
            <width>155</width>
@@ -219,14 +189,14 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="pushBtbVoltMeas_3">
+        <widget class="QPushButton" name="btnGenerateFinalReports">
          <property name="text">
-          <string>Generate Final Report</string>
+          <string>Generate Final &amp;Report</string>
          </property>
         </widget>
        </item>
        <item>
-        <spacer name="vSpacerBtns2_3">
+        <spacer name="vSpacerReportsBtns">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>
@@ -258,8 +228,8 @@
   </layout>
  </widget>
  <tabstops>
-  <tabstop>pushBtbVoltMeas</tabstop>
-  <tabstop>pushBtnRS485Meas</tabstop>
+  <tabstop>btnImportCSV</tabstop>
+  <tabstop>btnShowCSVtable</tabstop>
  </tabstops>
  <resources/>
  <connections/>
