@@ -1,7 +1,11 @@
 from datetime import datetime
-
+import numpy as np
+import os.path as path
 from PyQt6.QtCore import QAbstractTableModel, Qt
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QIcon
+
+# relative pathing to handle situation when starting the app from different locations
+appBaseDir = path.abspath(path.join(__file__, "../../.."))
 
 
 class TableModel(QAbstractTableModel):
@@ -46,8 +50,8 @@ class TableModel(QAbstractTableModel):
                 # Render float to 2 dp
                 return "%.2f" % value
             elif isinstance(value, str):
-                # Render strings with quotes
-                return '"%s"' % value
+                return value  # Render strings without quotes
+                return '"%s"' % value  # Render strings with quotes
             # Default (anything not captured above: e.g. int)
             # return value
             return str(value)  # conversion to string needed for pandas
@@ -57,6 +61,19 @@ class TableModel(QAbstractTableModel):
 
         elif role == Qt.ItemDataRole.TextAlignmentRole:
             return Qt.AlignmentFlag.AlignRight
+
+        elif role == Qt.ItemDataRole.DecorationRole:
+            value = self._data.iloc[index.row(), index.column()]
+            if isinstance(value, np.bool_):
+                if value:
+                    return QIcon(path.join(appBaseDir, "icons", "check.ico"))
+                return QIcon(path.join(appBaseDir, "icons", "exit.ico"))
+
+        # Tooltip message will be shown when hovering over a cell
+        elif role == Qt.ItemDataRole.ToolTipRole:
+            value = self._data.iloc[index.row(), index.column()]
+            return "row: {}, col: {}".format(index.row() + 1, index.column() + 1)
+            # return "cell data type: {}".format(type(value))
 
         return None
 

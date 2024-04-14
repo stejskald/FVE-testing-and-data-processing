@@ -1,7 +1,7 @@
-from random import uniform
-
+# import pandas as pd
 import numpy as np
 import pyqtgraph as pg
+from random import uniform
 from include.UIs.XYGraphTab_ui import Ui_XYGraphTab
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPalette
@@ -10,8 +10,8 @@ from PyQt6.QtWidgets import QWidget
 
 # pyuic6 dp-qtdesktopapp/include/UIs/XYGraphTab.ui -o dp-qtdesktopapp/include/UIs/XYGraphTab_ui.py
 class XYGraphTab(QWidget, Ui_XYGraphTab):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self):
+        super(XYGraphTab, self).__init__()
         self.setupUi(self)
 
         # Set background colour - default window color background
@@ -37,6 +37,15 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.adcChannelPlot.setLabel("bottom", "čas", units="s")  # type: ignore
         self.adcChannelPlot.getAxis("bottom").label.setFont(QFont("Times", 12))  # type: ignore
         self.adcChannelPlot.setTitle("ADC {}".format(self.comboBoxXData.currentText()))  # type: ignore
+
+    def loadData(self, dataFrame):
+        self.df = dataFrame
+
+        # AvgPh2PhVoltages = self.df[["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"]]
+        # print(AvgPh2PhVoltages)
+
+        # Average for each column with numpy (U12, U13, U23)
+        # averaged_array = np.array(AvgPh2PhVoltages).mean(axis=0)
 
     def adcChannelChanged(self):
         self.adcChannelPlot.setTitle("ADC {}".format(self.comboBoxXData.currentText()))  # type: ignore

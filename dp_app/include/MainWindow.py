@@ -1,10 +1,13 @@
+from datetime import datetime
+import pandas as pd
 import os.path as path
 import dp_app.include.fileTools as ft
+import numpy as np
 from include.ControlPanelTab import ControlPanelTab
-from include.CSVRawDataTab import CSVRawDataTab
+from include.CSVDataTab import CSVDataTab
 from include.PQDiagramTab import PQDiagramTab
 from include.XYGraphTab import XYGraphTab
-from PyQt6.QtCore import QDateTime, QSize, pyqtSlot, QStringListModel
+from PyQt6.QtCore import QSize, pyqtSlot, QStringListModel
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox
 
@@ -15,30 +18,11 @@ appBaseDir = path.abspath(path.join(__file__, "../.."))
 # print(f"appBaseDir: {appBaseDir}")
 
 
-def transform_timeDate(utc, timezone=None):
-    dateTime_fmt = "yyyy-MM-dd HH:mm:ss"
-    newDateTime = QDateTime().fromString(utc, dateTime_fmt)
-    if timezone:
-        newDateTime.setTimeZone(timezone)
-    return newDateTime
-
-
 class MainWindow(QMainWindow):
     def __init__(self):  # , data, columns):
         super(MainWindow, self).__init__()
-        # Read the csvDataSeparator from the INI config file
-        self.csvDataSeparator = ft.iniReadSectionKey(
-            path.join(appBaseDir, "appConfig.ini"),
-            "app.csv_data",
-            "data_separator",
-        )
-
-        # Read the filtered_columns from the INI config file
-        self.csvHeaders = ft.iniReadSectionKey(
-            path.join(appBaseDir, "appConfig.ini"),
-            "app.csv_data",
-            "filtered_columns",
-        )
+        # Read settings from configuration file
+        self.mWinReadConfig()
 
         self.setWindowTitle("The application for data processing of FVE testing")
         self.setWindowIcon(QIcon(path.join(appBaseDir, "icons", "solar-panel.ico")))
@@ -68,6 +52,35 @@ class MainWindow(QMainWindow):
         self.mWinOpenFileDialogInit()
 
         self.setCentralWidget(self.tabs)
+
+    def mWinReadConfig(self):
+        # Read the csvDataSeparator from the INI config file
+        self.csvDataSeparator = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "data_separator",
+        )
+
+        # Read the date_time_format from the INI config file
+        self.csvDateTimeFmt = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "date_time_format",
+        )
+
+        # Read the filtered_columns from the INI config file
+        self.csvSamplePeriod = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "sample_period_s",
+        )
+
+        # Read the filtered_columns from the INI config file
+        self.csvHeaders = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "filtered_columns",
+        )
 
     def mWinMenuInit(self):
         # Menu Bar
@@ -112,14 +125,14 @@ class MainWindow(QMainWindow):
         self.btnImportCSV.triggered.connect(self.btnClicked)
         csvMenu.addAction(self.btnImportCSV)  # type: ignore
 
-        # Menu Bar - CSV Menu - Show CSV Raw Data
-        self.btnCSVShowRawData = QAction(
+        # Menu Bar - CSV Menu - Show CSV Data
+        self.btnCSVShowData = QAction(
             QIcon(path.join(appBaseDir, "icons", "table.ico")),
-            "&Show CSV Raw Data",
+            "&Show CSV Data",
             self,
         )
-        self.btnCSVShowRawData.triggered.connect(self.btnClicked)
-        csvMenu.addAction(self.btnCSVShowRawData)  # type: ignore
+        self.btnCSVShowData.triggered.connect(self.btnClicked)
+        csvMenu.addAction(self.btnCSVShowData)  # type: ignore
 
         graphMenu = self.mainMenuBar.addMenu("&Graph Analysis")  # type: ignore
         self.btnShowCSVDataInGraph = QAction(
@@ -172,7 +185,7 @@ class MainWindow(QMainWindow):
         self.tabs.setTabPosition(QTabWidget.TabPosition.North)
 
         # Tab - Control Panel
-        self.controlTab = ControlPanelTab(self)
+        self.controlTab = ControlPanelTab()
         self.controlTabIdx = self.tabs.addTab(self.controlTab, "Control Panel")
         self.tabs.setTabIcon(
             self.controlTabIdx,
@@ -198,13 +211,13 @@ class MainWindow(QMainWindow):
         self.controlTab.btnGenerateFinalReports.setIcon(QIcon(path.join(appBaseDir, "icons", "printer.ico")))
         self.controlTab.btnGenerateFinalReports.setIconSize(QSize(30, 30))
 
-        # Tab - CSV Raw Data
-        self.csvRawDataTab = CSVRawDataTab()  # (self.csvRawData, self.csvHeaders)
-        self.csvRawDataTabIdx = self.tabs.addTab(self.csvRawDataTab, "CSV Raw Data")
-        self.tabs.setTabIcon(self.csvRawDataTabIdx, QIcon(path.join(appBaseDir, "icons", "table.ico")))
+        # Tab - CSV Data
+        self.csvDataTab = CSVDataTab()  # (self.csvData, self.csvHeaders)
+        self.csvDataTabIdx = self.tabs.addTab(self.csvDataTab, "CSV Data")
+        self.tabs.setTabIcon(self.csvDataTabIdx, QIcon(path.join(appBaseDir, "icons", "table.ico")))
 
         # Tab - XY Graph
-        self.xyGraphTab = XYGraphTab(self)
+        self.xyGraphTab = XYGraphTab()
         self.xyGraphTabIdx = self.tabs.addTab(self.xyGraphTab, "XY Graph")
         self.tabs.setTabIcon(self.xyGraphTabIdx, QIcon(path.join(appBaseDir, "icons", "xy-graph.ico")))
 
@@ -220,7 +233,7 @@ class MainWindow(QMainWindow):
         # Tab - PQ Diagram
         # TODO Get all header names and insert them into list with checkboxes -> selected will be showed in the table
         # and in 2 combo boxes for PQ diagram source data
-        self.pqDiagramTab = PQDiagramTab(self)
+        self.pqDiagramTab = PQDiagramTab()
         self.pqDiagramTabIdx = self.tabs.addTab(self.pqDiagramTab, "PQ Diagram")
         self.tabs.setTabIcon(
             self.pqDiagramTabIdx,
@@ -288,38 +301,108 @@ class MainWindow(QMainWindow):
                         incorrectHeaders.append(header)
                 if not incorrectHeaders:  # List is empty
                     # Read data from CSV file
-                    self.csvRawData = ft.readCSVdata(self.csvFilePath, self.csvDataSeparator, self.csvHeaders)
+                    self.csvData = ft.readCSVdata(self.csvFilePath, self.csvDataSeparator, self.csvHeaders)
+
+                    # Adjust the data in the Time column "2023-08-31 11:15:24" -> "11:15:24.00" ... "11:15:24.80"
+                    # TODO Move to a method
+                    # --------------------------------------------------------------------------------------------------
+                    # Find and select only first column with "Time"
+                    timeColName = [col for col in self.csvData.columns if "Time" in col][0]
+                    # Get a date from datetime format (RRRR-MM-DD HH:MM:SS)
+                    self.measurementDate = self.csvData[timeColName].str.split(" ").str[0][0]
+                    self.xyGraphTab.labelMeasDateValue.setText(self.measurementDate)
+                    # Update values in timeColName column with trimming the date part
+                    self.csvData[timeColName] = self.csvData[timeColName].str.split(" ").str[1]
+
+                    timeValues = self.csvData[timeColName].values
+                    ptimeSecs = []
+                    for timestr in timeValues:
+                        pt = datetime.strptime(timestr, "%H:%M:%S")  # parsed time
+                        ptimeSecs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
+                    # Detect differences in the time (list ptimeSecs)
+                    timeDiffs = np.array(ptimeSecs[:-1]) - np.array(ptimeSecs[1:])
+
+                    # Some first rows need to be deleted because of adding .00 .20 .40 .60 .80 to the time column data
+                    iter = 0
+                    while timeDiffs[iter] == 0:
+                        # Drop the first row
+                        self.csvData = self.csvData.iloc[1:]
+                        iter += 1
+                    if timeDiffs[iter] == -1:
+                        self.csvData = self.csvData.iloc[1:]
+                    print(self.csvData)
+
+                    timeColIdx = self.csvData.columns.get_loc(timeColName)
+                    dt = float(str(self.csvSamplePeriod))
+                    runIter = 0
+                    runCount = 1 / dt
+                    for idx, row in self.csvData.iterrows():  # Iterate over rows
+                        self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx] = (
+                            row[timeColName] + f"{runIter*dt:.2f}"[1:]
+                        )
+                        print(row[timeColName] + f"{runIter*dt:.2f}"[1:])
+                        runIter += 1
+                        if runIter == runCount:
+                            runIter = 0
+                    # --------------------------------------------------------------------------------------------------
+
+                    # Adjust the data in the 3Cosφ[] column "C -0.18" -> float(-0.18)
+                    # TODO Move to a method
+                    # --------------------------------------------------------------------------------------------------
+                    # TODO Finish
+                    # Find and select only first column with "3Cos"
+                    cosPhiColName = [col for col in self.csvData.columns if "3Cos" in col][0]
+                    # Update values in cosPhiColName column with trimming the "C"/"L" part and converting to float64
+                    self.csvData[cosPhiColName] = self.csvData[cosPhiColName].str.split(" ").str[1]
+                    self.csvData[cosPhiColName] = self.csvData[cosPhiColName].apply(pd.to_numeric, errors="coerce")
+
+                    # --------------------------------------------------------------------------------------------------
+
+                    # Convert the data in the DOI1[] and DOI4[] columns to boolean "False" -> bool(False)
+                    # TODO Move to a method
+                    # --------------------------------------------------------------------------------------------------
+                    # TODO Finish
+                    # Find all columns with "DOI"
+                    # DOIcolNames = [col for col in self.csvData.columns if "DOI" in col]
+                    # Update values in DOIcolNames columns with converting the "True"/"False" to booleans
+                    # # Convert the string column 'x1' to boolean
+                    # for DOIcol in DOIcolNames:
+                    #     self.csvData[DOIcol] = self.csvData[DOIcol].map({'True': True, 'False': False})
+                    # --------------------------------------------------------------------------------------------------
 
                     # Set the TableView Data Model and upload the loaded data
-                    self.csvRawDataTab.csvRawDataTabSetTableDataModel(self.csvRawData)
+                    self.csvDataTab.csvDataTabSetTableDataModel(self.csvData)
 
-                    # Show CSV Raw Data tab
-                    self.tabs.setCurrentIndex(self.csvRawDataTabIdx)
+                    # Show CSV Data tab
+                    self.tabs.setCurrentIndex(self.csvDataTabIdx)
                     self.mainStatusBar.showMessage("The CSV file has been loaded")
+
+                    # Load data to the xyGraphTab
+                    self.xyGraphTab.loadData(self.csvData)
 
                 else:
                     # A critical message shown
                     QMessageBox.critical(
                         self,
                         "Incorrect Configuration File - Wrong headers",
-                        f"The following headers listed in the configuration file were not found in the CSV Data file: \
-                            {incorrectHeaders}. Close the application, edit the configuration file and start the \
-                            application again.",
+                        "The following headers listed in the configuration file were not found in the CSV Data file: "
+                        + f"{incorrectHeaders}. Close the application, edit the configuration file and start the "
+                        + "application again.",
                         buttons=QMessageBox.StandardButton.Ok,
                         defaultButton=QMessageBox.StandardButton.Ok,
                     )
 
         # TODO Finish all button functions
-        elif sender == "&Show CSV Raw Data":
-            # Show CSV Raw Data tab
-            self.tabs.setCurrentIndex(self.csvRawDataTabIdx)
+        elif sender == "&Show CSV Data":
+            # Show CSV Data tab
+            self.tabs.setCurrentIndex(self.csvDataTabIdx)
 
         elif sender == "Show &XY Graph":
-            # Show CSV Raw Data tab
+            # Show XY-Graph tab
             self.tabs.setCurrentIndex(self.xyGraphTabIdx)
 
         elif sender == "Show &PQ Diagram":
-            # Show CSV Raw Data tab
+            # Show PQ-Diagram tab
             self.tabs.setCurrentIndex(self.pqDiagramTabIdx)
 
         elif sender == "Generate Final &Report":

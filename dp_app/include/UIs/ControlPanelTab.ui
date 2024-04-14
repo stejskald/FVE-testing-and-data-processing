@@ -44,7 +44,7 @@
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line">
+        <widget class="Line" name="lineCSVoperations">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -60,7 +60,7 @@
        <item>
         <widget class="QPushButton" name="btnShowCSVtable">
          <property name="text">
-          <string>&amp;Show CSV Raw Data</string>
+          <string>&amp;Show CSV Data</string>
          </property>
         </widget>
        </item>
@@ -113,7 +113,7 @@
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line_2">
+        <widget class="Line" name="lineGraphAnalysis">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
@@ -182,7 +182,7 @@
         </widget>
        </item>
        <item>
-        <widget class="Line" name="line_3">
+        <widget class="Line" name="lineReports">
          <property name="orientation">
           <enum>Qt::Horizontal</enum>
          </property>
