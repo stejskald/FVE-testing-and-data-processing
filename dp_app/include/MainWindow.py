@@ -1,6 +1,7 @@
+# import sys
 from datetime import datetime
 import pandas as pd
-import os.path as path
+from os import path as path
 import dp_app.include.fileTools as ft
 import numpy as np
 from include.ControlPanelTab import ControlPanelTab
@@ -9,7 +10,7 @@ from include.PQDiagramTab import PQDiagramTab
 from include.XYGraphTab import XYGraphTab
 from PyQt6.QtCore import QSize, pyqtSlot, QStringListModel
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
-from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox  # , QProgressBar
 
 # relative pathing to handle situation when starting the app from different locations
 includeDir = path.dirname(__file__)
@@ -50,6 +51,9 @@ class MainWindow(QMainWindow):
 
         # Initialize the Open CSV Dialog
         self.mWinOpenFileDialogInit()
+
+        # Initialize the Progress Bar
+        # self.mWinProgressBarInit() #TODO Finish
 
         self.setCentralWidget(self.tabs)
 
@@ -225,10 +229,9 @@ class MainWindow(QMainWindow):
         self.xyGraphTab.comboBoxXData.setModel(self.comboBoxXDataModel)
         self.xyGraphTab.comboBoxXData.setCurrentIndex(0)
 
-        self.comboBoxYDataModel = QStringListModel(self.csvHeaders)
+        self.comboBoxYDataModel = QStringListModel(self.csvHeaders[1:])  # without Time column
         self.xyGraphTab.comboBoxYData.setModel(self.comboBoxYDataModel)
         self.xyGraphTab.comboBoxYData.setCurrentIndex(1)
-        # self.comboBoxXData.currentTextChanged.connect(self.adcChannelChanged)
 
         # Tab - PQ Diagram
         # TODO Get all header names and insert them into list with checkboxes -> selected will be showed in the table
@@ -259,6 +262,13 @@ class MainWindow(QMainWindow):
         # Print Final Report Shortcut
         self.shortcut = QShortcut(QKeySequence("Ctrl+P"), self)
         self.shortcut.activated.connect(self.printReport)
+
+    # TODO Finish
+    # def mWinProgressBarInit(self):
+    #     self.progressBar = QProgressBar(self)
+    #     self.progressBar.setGeometry(180, 200, 250, 20)
+    #     self.controlTab.btnImportCSV.clicked.connect(self.updateProgressBar)
+    #     self.progressBar.hide()
 
     # @pyqtSlot() <- TypeError: missing 1 required positional argument: 'visibility'
     def setToolbarVisibility(self, visibility):
@@ -300,84 +310,63 @@ class MainWindow(QMainWindow):
                     if header not in self.csvAllHeaders:
                         incorrectHeaders.append(header)
                 if not incorrectHeaders:  # List is empty
+                    # An informative message shown #REVIEW Uncomment to show a MessageBox
+                    # QMessageBox.information(
+                    #     self,
+                    #     "Informative - CSV loading time",
+                    #     "The file is loading, please wait, it may take a few minutes if the file is too large "
+                    #     + "(10 MB takes about 40 sec).",
+                    #     buttons=QMessageBox.StandardButton.Ok,
+                    #     defaultButton=QMessageBox.StandardButton.Ok,
+                    # )
+
+                    # self.mainStatusBar.showMessage(
+                    #     "The file is loading, please wait, it may take a few minutes if the file is too large "
+                    #     + "(10MB takes about 40 sec)."
+                    # )
+
+                    # self.progressBar.show()
+
                     # Read data from CSV file
                     self.csvData = ft.readCSVdata(self.csvFilePath, self.csvDataSeparator, self.csvHeaders)
 
-                    # Adjust the data in the Time column "2023-08-31 11:15:24" -> "11:15:24.00" ... "11:15:24.80"
-                    # TODO Move to a method
-                    # --------------------------------------------------------------------------------------------------
-                    # Find and select only first column with "Time"
-                    timeColName = [col for col in self.csvData.columns if "Time" in col][0]
-                    # Get a date from datetime format (RRRR-MM-DD HH:MM:SS)
-                    self.measurementDate = self.csvData[timeColName].str.split(" ").str[0][0]
-                    self.xyGraphTab.labelMeasDateValue.setText(self.measurementDate)
-                    # Update values in timeColName column with trimming the date part
-                    self.csvData[timeColName] = self.csvData[timeColName].str.split(" ").str[1]
+                    # TODO Progress bar -----------------------------
+                    # from tqdm import tqdm
 
-                    timeValues = self.csvData[timeColName].values
-                    ptimeSecs = []
-                    for timestr in timeValues:
-                        pt = datetime.strptime(timestr, "%H:%M:%S")  # parsed time
-                        ptimeSecs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
-                    # Detect differences in the time (list ptimeSecs)
-                    timeDiffs = np.array(ptimeSecs[:-1]) - np.array(ptimeSecs[1:])
+                    # LINES_TO_READ_FOR_EST = 20
+                    # CHUNK_SIZE_PER_ITER = 10**5
 
-                    # Some first rows need to be deleted because of adding .00 .20 .40 .60 .80 to the time column data
-                    iter = 0
-                    while timeDiffs[iter] == 0:
-                        # Drop the first row
-                        self.csvData = self.csvData.iloc[1:]
-                        iter += 1
-                    if timeDiffs[iter] == -1:
-                        self.csvData = self.csvData.iloc[1:]
-                    print(self.csvData)
+                    # temp = pd.read_csv(self.csvFilePath, nrows=LINES_TO_READ_FOR_EST)
+                    # N = len(temp.to_csv(index=False))
+                    # df = [temp[:0]]
+                    # t = int(path.getsize(self.csvFilePath) / N * LINES_TO_READ_FOR_EST / CHUNK_SIZE_PER_ITER) + 1
 
-                    timeColIdx = self.csvData.columns.get_loc(timeColName)
-                    dt = float(str(self.csvSamplePeriod))
-                    runIter = 0
-                    runCount = 1 / dt
-                    for idx, row in self.csvData.iterrows():  # Iterate over rows
-                        self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx] = (
-                            row[timeColName] + f"{runIter*dt:.2f}"[1:]
-                        )
-                        print(row[timeColName] + f"{runIter*dt:.2f}"[1:])
-                        runIter += 1
-                        if runIter == runCount:
-                            runIter = 0
-                    # --------------------------------------------------------------------------------------------------
+                    # with tqdm(total=t, file=sys.stdout) as pbar:
+                    #     for i, chunk in enumerate(
+                    #         pd.read_csv(self.csvFilePath, chunksize=CHUNK_SIZE_PER_ITER, low_memory=False)
+                    #     ):
+                    #         df.append(chunk)
+                    #         pbar.set_description("Importing: %d" % (1 + i))
+                    #         pbar.update(1)
+
+                    # data = temp[:0].append(df)
+                    # del df
+                    # ----------------------------------------------------------
+
+                    # Adjust the DateTime column to have info about milliseconds and the time zone
+                    # e.g.: "2023-08-31 11:15:24" -> "2023-08-31 11:15:24.200000 +0200"
+                    self.adjustDateTimeColumn()
 
                     # Adjust the data in the 3Cosφ[] column "C -0.18" -> float(-0.18)
-                    # TODO Move to a method
-                    # --------------------------------------------------------------------------------------------------
-                    # TODO Finish
-                    # Find and select only first column with "3Cos"
-                    cosPhiColName = [col for col in self.csvData.columns if "3Cos" in col][0]
-                    # Update values in cosPhiColName column with trimming the "C"/"L" part and converting to float64
-                    self.csvData[cosPhiColName] = self.csvData[cosPhiColName].str.split(" ").str[1]
-                    self.csvData[cosPhiColName] = self.csvData[cosPhiColName].apply(pd.to_numeric, errors="coerce")
-
-                    # --------------------------------------------------------------------------------------------------
-
-                    # Convert the data in the DOI1[] and DOI4[] columns to boolean "False" -> bool(False)
-                    # TODO Move to a method
-                    # --------------------------------------------------------------------------------------------------
-                    # TODO Finish
-                    # Find all columns with "DOI"
-                    # DOIcolNames = [col for col in self.csvData.columns if "DOI" in col]
-                    # Update values in DOIcolNames columns with converting the "True"/"False" to booleans
-                    # # Convert the string column 'x1' to boolean
-                    # for DOIcol in DOIcolNames:
-                    #     self.csvData[DOIcol] = self.csvData[DOIcol].map({'True': True, 'False': False})
-                    # --------------------------------------------------------------------------------------------------
+                    self.adjust3CosPhiColumn()
 
                     # Set the TableView Data Model and upload the loaded data
                     self.csvDataTab.csvDataTabSetTableDataModel(self.csvData)
 
-                    # Show CSV Data tab
-                    self.tabs.setCurrentIndex(self.csvDataTabIdx)
+                    # Show info about CSV file was loaded
                     self.mainStatusBar.showMessage("The CSV file has been loaded")
 
-                    # Load data to the xyGraphTab
+                    # Load CSV data to the xyGraphTab
                     self.xyGraphTab.loadData(self.csvData)
 
                 else:
@@ -392,7 +381,6 @@ class MainWindow(QMainWindow):
                         defaultButton=QMessageBox.StandardButton.Ok,
                     )
 
-        # TODO Finish all button functions
         elif sender == "&Show CSV Data":
             # Show CSV Data tab
             self.tabs.setCurrentIndex(self.csvDataTabIdx)
@@ -407,3 +395,55 @@ class MainWindow(QMainWindow):
 
         elif sender == "Generate Final &Report":
             self.mainStatusBar.showMessage("Generate Final Report button has been pressed")
+
+    def adjustDateTimeColumn(self):
+        # Find name of the first column with "Time"
+        self.timeColName = [col for col in self.csvData.columns if "Time" in col][0]
+        # Get str values in list
+        timeValues = self.csvData[self.timeColName].tolist()
+
+        # Check if the time starts at the whole second
+        dt = float(str(self.csvSamplePeriod))
+        runCount = int(1 / dt)  # run count per each second (5 times if dt is 0.2 sec)
+        ptimeSecs = []
+        for dateTimeStr in timeValues[:runCount]:
+            pt = datetime.strptime(dateTimeStr, "%Y-%m-%d %H:%M:%S")  # parsed datetime
+            ptimeSecs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
+        # Detect differences in the time (list ptimeSecs)
+        timeDiffs = list(np.array(ptimeSecs[:-1]) - np.array(ptimeSecs[1:]))
+
+        # Adding .00 .20 .40 .60 .80 (mSec) and timezone (UTC+2) to the time data
+        timeColIdx = self.csvData.columns.get_loc(self.timeColName)
+        runIter = runCount - (timeDiffs.index(-1) + 1)
+        for idx, row in self.csvData.iterrows():  # Iterate over rows
+            self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx] = (
+                row[self.timeColName] + f"{runIter*dt:.3f}"[1:] + " +0200"
+            )
+            runIter += 1
+            if runIter == runCount:
+                runIter = 0
+
+        # Convert Pandas column of datetime strings to DateTimes
+        self.csvData[self.timeColName] = pd.to_datetime(
+            self.csvData[self.timeColName], format="%Y-%m-%d %H:%M:%S.%f %z", errors="coerce"
+        )
+
+        # # Get date from the first element in the DateTime column as string
+        self.measDate = str(self.csvData[self.timeColName].dt.date[0])
+        self.xyGraphTab.labelMeasDateValue.setText(self.measDate)
+
+    def adjust3CosPhiColumn(self):
+        # Find and select only first column with "3Cos"
+        cosPhiColName = [col for col in self.csvData.columns if "3Cos" in col][0]
+        # Update values in cosPhiColName column with trimming the "C"/"L" part and converting to float64
+        self.csvData[cosPhiColName] = self.csvData[cosPhiColName].str.split(" ").str[1]
+        self.csvData[cosPhiColName] = pd.to_numeric(self.csvData[cosPhiColName], errors="coerce")
+
+    # @pyqtSlot()
+    # def updateProgressBar(self):
+    #     self.completed = 0
+
+    #     while self.completed < 100:
+    #         self.completed += 0.0001
+    #         self.progressBar.setValue(int(self.completed))
+    #     self.progressBar.hide()

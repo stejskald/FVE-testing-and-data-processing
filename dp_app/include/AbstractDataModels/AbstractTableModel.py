@@ -44,14 +44,14 @@ class TableModel(QAbstractTableModel):
 
             # Perform per-type checks and render accordingly.
             if isinstance(value, datetime):
-                # Render time to YYYY-MM-DD.
-                return value.strftime("%Y-%m-%d")
+                # Render time to YYYY-mm-dd HH-MM-SS.ffffff
+                return value.strftime("%H:%M:%S.%f")
             elif isinstance(value, float):
                 # Render float to 2 dp
                 return "%.2f" % value
             elif isinstance(value, str):
                 return value  # Render strings without quotes
-                return '"%s"' % value  # Render strings with quotes
+                # return '"%s"' % value  # Render strings with quotes
             # Default (anything not captured above: e.g. int)
             # return value
             return str(value)  # conversion to string needed for pandas
@@ -72,8 +72,8 @@ class TableModel(QAbstractTableModel):
         # Tooltip message will be shown when hovering over a cell
         elif role == Qt.ItemDataRole.ToolTipRole:
             value = self._data.iloc[index.row(), index.column()]
-            return "row: {}, col: {}".format(index.row() + 1, index.column() + 1)
-            # return "cell data type: {}".format(type(value))
+            # return "row: {}, col: {}".format(index.row() + 1, index.column() + 1)
+            return "cell data type: {}".format(type(value))
 
         return None
 
