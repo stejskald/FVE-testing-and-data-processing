@@ -8,7 +8,7 @@ class CSVDataTab(QWidget, Ui_CSVDataTab):
         super(CSVDataTab, self).__init__()
         self.setupUi(self)
 
-    def csvDataTabSetTableDataModel(self, data):
+    def setTableDataModel(self, data):
         # Getting the Model
         self.tableModel = TableModel(data)
 

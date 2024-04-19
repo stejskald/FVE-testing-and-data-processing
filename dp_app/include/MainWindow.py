@@ -8,7 +8,7 @@ from include.ControlPanelTab import ControlPanelTab
 from include.CSVDataTab import CSVDataTab
 from include.PQDiagramTab import PQDiagramTab
 from include.XYGraphTab import XYGraphTab
-from PyQt6.QtCore import QSize, pyqtSlot, QStringListModel
+from PyQt6.QtCore import QSize, pyqtSlot
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox  # , QProgressBar
 
@@ -225,17 +225,7 @@ class MainWindow(QMainWindow):
         self.xyGraphTabIdx = self.tabs.addTab(self.xyGraphTab, "XY Graph")
         self.tabs.setTabIcon(self.xyGraphTabIdx, QIcon(path.join(appBaseDir, "icons", "xy-graph.ico")))
 
-        self.comboBoxXDataModel = QStringListModel(self.csvHeaders)
-        self.xyGraphTab.comboBoxXData.setModel(self.comboBoxXDataModel)
-        self.xyGraphTab.comboBoxXData.setCurrentIndex(0)
-
-        self.comboBoxYDataModel = QStringListModel(self.csvHeaders[1:])  # without Time column
-        self.xyGraphTab.comboBoxYData.setModel(self.comboBoxYDataModel)
-        self.xyGraphTab.comboBoxYData.setCurrentIndex(1)
-
         # Tab - PQ Diagram
-        # TODO Get all header names and insert them into list with checkboxes -> selected will be showed in the table
-        # and in 2 combo boxes for PQ diagram source data
         self.pqDiagramTab = PQDiagramTab()
         self.pqDiagramTabIdx = self.tabs.addTab(self.pqDiagramTab, "PQ Diagram")
         self.tabs.setTabIcon(
@@ -360,14 +350,26 @@ class MainWindow(QMainWindow):
                     # Adjust the data in the 3Cosφ[] column "C -0.18" -> float(-0.18)
                     self.adjust3CosPhiColumn()
 
+                    # Mean of 3 columns: ["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"]
+                    self.makeMeanOfPh2PhAvgVoltages()
+
                     # Set the TableView Data Model and upload the loaded data
-                    self.csvDataTab.csvDataTabSetTableDataModel(self.csvData)
+                    self.csvDataTab.setTableDataModel(self.csvData)
 
                     # Show info about CSV file was loaded
                     self.mainStatusBar.showMessage("The CSV file has been loaded")
 
-                    # Load CSV data to the xyGraphTab
+                    # BUG
+                    # Set the TableView Data Model and upload the loaded data
+                    self.xyGraphTab.setComboBoxesDataModel(self.csvData.columns.to_list())
+
+                    # Load CSV data to the xyGraphTab ans set the date
                     self.xyGraphTab.loadData(self.csvData)
+                    self.xyGraphTab.setMeasurementDate(self.measDate)
+
+                    # Load CSV data to the pqDiagramTab ans set the date
+                    self.pqDiagramTab.loadData(self.csvData)
+                    self.pqDiagramTab.setMeasurementDate(self.measDate)
 
                 else:
                     # A critical message shown
@@ -430,7 +432,6 @@ class MainWindow(QMainWindow):
 
         # # Get date from the first element in the DateTime column as string
         self.measDate = str(self.csvData[self.timeColName].dt.date[0])
-        self.xyGraphTab.labelMeasDateValue.setText(self.measDate)
 
     def adjust3CosPhiColumn(self):
         # Find and select only first column with "3Cos"
@@ -438,6 +439,14 @@ class MainWindow(QMainWindow):
         # Update values in cosPhiColName column with trimming the "C"/"L" part and converting to float64
         self.csvData[cosPhiColName] = self.csvData[cosPhiColName].str.split(" ").str[1]
         self.csvData[cosPhiColName] = pd.to_numeric(self.csvData[cosPhiColName], errors="coerce")
+
+    def makeMeanOfPh2PhAvgVoltages(self):
+        # Average for each row in columns "Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"
+        AvgU_Ph2Ph = np.array(self.csvData[["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"]]).mean(axis=1)
+        # Delete these 3 columns in the DataFrame
+        self.csvData = self.csvData.drop(["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"], axis=1)
+        # TODO Add a new column "Avg.UΔ[V]" as the 1st
+        self.csvData.insert(1, "Avg.UΔ[V]", AvgU_Ph2Ph, True)
 
     # @pyqtSlot()
     # def updateProgressBar(self):

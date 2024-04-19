@@ -1,14 +1,12 @@
-# import pandas as pd
-# from random import uniform
-import numpy as np
-import pyqtgraph as pg
-import pandas as pd
-import time
 from include.UIs.XYGraphTab_ui import Ui_XYGraphTab
 from dp_app.include.pgTimeAxis import DateAxisItem
-from PyQt6.QtCore import Qt, pyqtSlot  # , QTimer
-from PyQt6.QtGui import QFont, QPalette
+from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
+from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QWidget
+import pyqtgraph as pg
+import pandas as pd
+
+# import numpy as np
 
 
 # pyuic6 dp-qtdesktopapp/include/UIs/XYGraphTab.ui -o dp-qtdesktopapp/include/UIs/XYGraphTab_ui.py
@@ -20,12 +18,13 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         # Set background colour - default window color background
         xyGraphBGcolor = self.palette().color(QPalette.ColorRole.Base)
         self.XYGraph.setBackground(xyGraphBGcolor)
-        self.XYGraph.setTitle("Title", color="k", size="16pt")
-        # self.XYGraph.addLegend(offset=20)
+        self.XYGraph.setTitle("Graph Title", color="k", size="16pt")
+        self.XYGraph.addLegend(offset=10)
         self.XYGraph.showGrid(x=True, y=True)
 
         self.xyPlot = self.XYGraph.getPlotItem()
-        self.pen = pg.mkPen(color="b", width=2, style=Qt.PenStyle.SolidLine)
+        self.pen = pg.mkPen(color="#4393c3", width=2, style=Qt.PenStyle.SolidLine)
+        self.xyPlot.setTitle("XY Graph")  # type: ignore
 
     def loadData(self, dataFrame):
         self.df = dataFrame.copy()
@@ -39,10 +38,16 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.dataX = self.df[self.comboBoxXData.currentText()].tolist()
         self.dataY = self.df[self.comboBoxYData.currentText()].tolist()
 
-        self.lineDataRef = self.XYGraph.plot(self.dataX, self.dataY, pen=self.pen)
+        # Check if the lineDataRef exists (if Import CSV is called multiple times)
+        if hasattr(self, "lineDataRef"):
+            self.xyPlot.removeItem(self.lineDataRef)  # type: ignore
+        self.lineDataRef = self.XYGraph.plot(
+            self.dataX, self.dataY, pen=self.pen, name=self.comboBoxYData.currentText()
+        )
+
         # Y-Axis
-        self.xyPlot.setLabel("left", self.comboBoxYData.currentText())  # , units="???")  # type: ignore
-        self.xyPlot.getAxis("left").label.setFont(QFont("Times", 12))  # type: ignore
+        yLabelStyles = {"color": "#4393c3", "font": "Times", "font-size": "12pt"}
+        self.xyPlot.setLabel("left", self.comboBoxYData.currentText(), **yLabelStyles)  # type: ignore
 
         # X-Axis (DateTime)
         # Remove the old item to not get message from QGridLayoutEngine: Cell (3, 1) already taken
@@ -54,35 +59,20 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         xAxis.attachToPlotItem(self.xyPlot)
 
         # TODO Remove units??? Showing "G" at the beginning
-        self.xyPlot.setLabel("bottom", self.comboBoxXData.currentText(), units="s")  # type: ignore
-        self.xyPlot.getAxis("bottom").label.setFont(QFont("Times", 12))  # type: ignore
-        self.xyPlot.setTitle(  # type: ignore
-            f"{self.comboBoxYData.currentText()} vs {self.comboBoxXData.currentText()}"
-        )
+        xLabelStyles = {"font": "Times", "font-size": "12pt"}
+        self.xyPlot.setLabel("bottom", self.comboBoxXData.currentText(), units="s", **xLabelStyles)  # type: ignore
+        # self.xyPlot.getAxis("bottom").label.setFont(QFont("Times", 12))  # type: ignore
 
         self.comboBoxXData.currentTextChanged.connect(self.updatePlotData)
         self.comboBoxYData.currentTextChanged.connect(self.updatePlotData)
-
-        # REVIEW Plot some random data with timestamps in the last hour
-        # now = time.time()
-        # timestamps = np.linspace(now - 3600, now, 100)
-        # self.XYGraph.plot(x=timestamps, y=np.random.rand(100), symbol="o")
 
     def processData(self):
         # Convert datetime to timestamp
         self.df[self.timeColName] = self.df[self.timeColName].apply(pd.Timestamp.timestamp)
 
-        # Ph2PhAvgVoltages = self.df[["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"]]
-        # print(Ph2PhAvgVoltages)
-
-        # Average for each row
-        # Ph2PhVoltagesMean = np.array(Ph2PhAvgVoltages).mean(axis=1)
-        # print(Ph2PhVoltagesMean)
-        pass
-
     @pyqtSlot()
     def updatePlotData(self):
-        sender = self.sender()  # .text()  # .objectName()  # type: ignore
+        sender = self.sender()  # type: ignore
 
         self.xyPlot.setTitle(  # type: ignore
             f"{self.comboBoxYData.currentText()} vs {self.comboBoxXData.currentText()}"
@@ -95,6 +85,24 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
             self.dataY = self.df[self.comboBoxYData.currentText()].tolist()
 
         self.lineDataRef.setData(self.dataX, self.dataY)  # Update the line data ref
+        self.changeLabel(self.xyPlot, self.lineDataRef, self.comboBoxYData.currentText())
+
+    def setComboBoxesDataModel(self, headers=[]):
+        self.comboBoxXDataModel = QStringListModel([headers[0]])
+        self.comboBoxXData.setModel(self.comboBoxXDataModel)
+        self.comboBoxXData.setCurrentIndex(0)
+
+        self.comboBoxYDataModel = QStringListModel(headers[1:])  # without Time column
+        self.comboBoxYData.setModel(self.comboBoxYDataModel)
+        self.comboBoxYData.setCurrentIndex(0)
+
+    def setMeasurementDate(self, measDate):
+        self.labelMeasDateValue.setText(measDate)
+
+    def changeLabel(self, plot, plotItem, name):
+        # Change the label of given PlotDataItem in the plot's legend
+        plot.legend.removeItem(plotItem)
+        plot.legend.addItem(plotItem, name)
 
     # # TODO: finish
     # def saveMeasuredData(self):
@@ -102,25 +110,3 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
     #     y = np.random.random(201)
 
     #     np.savetxt("testData.dat", [x, y])
-
-
-# Reimplements \c pyqtgraph.AxisItem to display time series.
-# \code
-# from caxistime import CAxisTime
-# \# class definition here...
-# self.__axisTime=CAxisTime(orientation='bottom')
-# self.__plot=self.__glyPlot.addPlot(axisItems={'bottom': self.__axisTime}) # __plot : PlotItem
-# \endcode
-class CAxisTime(pg.AxisItem):
-    # Formats axis label to human readable time.
-    # @param[in] values List of \c time_t.
-    # @param[in] scale Not used.
-    # @param[in] spacing Not used.
-    def tickStrings(self, values, scale, spacing):
-        strns = []
-        for x in values:
-            try:
-                strns.append(time.strftime("%H:%M:%S", time.gmtime(x)))  # time_t --> time.struct_time
-            except ValueError:  # Windows can't handle dates before 1970
-                strns.append("")
-        return strns
