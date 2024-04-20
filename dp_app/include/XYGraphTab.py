@@ -20,15 +20,38 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.XYGraph.setBackground(xyGraphBGcolor)
         self.XYGraph.setTitle("Graph Title", color="k", size="16pt")
         self.XYGraph.addLegend(offset=10)
-        self.XYGraph.showGrid(x=True, y=True)
 
         self.xyPlot = self.XYGraph.getPlotItem()
-        self.pen = pg.mkPen(color="#4393c3", width=2, style=Qt.PenStyle.SolidLine)
         self.xyPlot.setTitle("XY Graph")  # type: ignore
 
+        self.penY1 = pg.mkPen(color="#4393c3", width=2, style=Qt.PenStyle.SolidLine)
+        self.penY2 = pg.mkPen(color="#b2182b", width=2, style=Qt.PenStyle.SolidLine)
+
+        self.xLabelStyles = {"font": "Times", "font-size": "12pt"}
+        self.y1LabelStyles = {"color": "#4393c3", "font": "Times", "font-size": "12pt"}
+        self.y2LabelStyles = {"color": "#b2182b", "font": "Times", "font-size": "12pt"}
+
+        # X-Axis (DateTime)
+        # Remove the old item to not get message from QGridLayoutEngine: Cell (3, 1) already taken
+        old_item = self.xyPlot.layout.itemAt(3, 1)  # type: ignore
+        self.xyPlot.layout.removeItem(old_item)  # type: ignore
+
+        # Add the Date-time axis
+        self.xAxis = DateAxisItem(orientation="bottom")
+        self.xAxis.attachToPlotItem(self.xyPlot)
+        self.xyPlot.showGrid(x=True, y=True, alpha=0.5)  # type: ignore
+
+        # Create a new ViewBox, link the right axis to its coordinate system
+        self.viewBoxY2 = pg.ViewBox()
+        self.xyPlot.showAxis("right")  # type: ignore
+        self.xyPlot.scene().addItem(self.viewBoxY2)  # type: ignore
+        self.xyPlot.getAxis("right").linkToView(self.viewBoxY2)  # type: ignore
+        self.viewBoxY2.setXLink(self.xyPlot)
+
         # Add crosshair lines
-        self.crosshair_v = pg.InfiniteLine(angle=90)
-        self.crosshair_h = pg.InfiniteLine(angle=0)
+        crosshairPen = pg.mkPen(color="#648200", width=1, style=Qt.PenStyle.SolidLine)  # #c0ff00
+        self.crosshair_v = pg.InfiniteLine(angle=90, pen=crosshairPen)
+        self.crosshair_h = pg.InfiniteLine(angle=0, pen=crosshairPen)
         self.XYGraph.addItem(self.crosshair_v, ignoreBounds=True)  # type: ignore
         self.XYGraph.addItem(self.crosshair_h, ignoreBounds=True)  # type: ignore
 
@@ -40,7 +63,7 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         cursor = Qt.CursorShape.BlankCursor
         self.XYGraph.setCursor(cursor)
 
-        self.vb = self.xyPlot.vb  # type: ignore
+        self.viewBoxY1 = self.xyPlot.getViewBox()  # type: ignore
         self.xyPlot.scene().sigMouseClicked.connect(self.onClick)  # type: ignore
 
     def loadData(self, dataFrame):
@@ -54,66 +77,92 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.processData()
 
         # series to list
-        self.dataX = self.df[self.comboBoxXData.currentText()].tolist()
-        self.dataY = self.df[self.comboBoxYData.currentText()].tolist()
+        self.dataX = self.df[self.cBoxXData.currentText()].tolist()
+        self.dataY1 = self.df[self.cBoxY1Data.currentText()].tolist()
+        self.dataY2 = self.df[self.cBoxY2Data.currentText()].tolist()
 
-        # Check if the lineDataRef exists (if Import CSV is called multiple times)
-        if hasattr(self, "lineDataRef"):
-            self.xyPlot.removeItem(self.lineDataRef)  # type: ignore
-        self.lineDataRef = self.XYGraph.plot(
-            self.dataX, self.dataY, pen=self.pen, name=self.comboBoxYData.currentText()
+        self.xyPlot.setTitle(  # type: ignore
+            f"{self.cBoxY1Data.currentText()} & {self.cBoxY2Data.currentText()} vs {self.cBoxXData.currentText()}"
         )
 
-        # Y-Axis
-        yLabelStyles = {"color": "#4393c3", "font": "Times", "font-size": "12pt"}
-        self.xyPlot.setLabel("left", self.comboBoxYData.currentText(), **yLabelStyles)  # type: ignore
+        # Y1-Axis
+        self.xyPlot.setLabel("left", self.cBoxY1Data.currentText(), **self.y1LabelStyles)  # type: ignore
+
+        # Check if the y1LineRef exists (if Import CSV is called multiple times)
+        if hasattr(self, "y1LineRef"):
+            self.xyPlot.removeItem(self.y1LineRef)  # type: ignore
+        self.y1LineRef = self.XYGraph.plot(self.dataX, self.dataY1, pen=self.penY1, name=self.cBoxY1Data.currentText())
+
+        # Y2-Axis
+        self.xyPlot.setLabel("right", self.cBoxY2Data.currentText(), **self.y2LabelStyles)  # type: ignore
+        if hasattr(self, "y2LineRef"):
+            self.viewBoxY2.removeItem(self.y2LineRef)  # type: ignore
+            self.xyPlot.legend.removeItem(self.y2LineRef)  # type: ignore
+        self.y2LineRef = pg.PlotCurveItem(pen=self.penY2, name=self.cBoxY2Data.currentText())
+        self.viewBoxY2.addItem(self.y2LineRef)
+        self.y2LineRef.setData(self.dataX, self.dataY2)
+        self.changeLegendLabel(self.xyPlot, self.y2LineRef, self.cBoxY2Data.currentText())
 
         # X-Axis (DateTime)
-        # Remove the old item to not get message from QGridLayoutEngine: Cell (3, 1) already taken
-        old_item = self.xyPlot.layout.itemAt(3, 1)  # type: ignore
-        self.xyPlot.layout.removeItem(old_item)  # type: ignore
+        self.xyPlot.setLabel("bottom", self.cBoxXData.currentText(), **self.xLabelStyles)  # type: ignore
+        self.xyPlot.getAxis("bottom").enableAutoSIPrefix(False)  # type: ignore
 
-        # Add the Date-time axis
-        xAxis = DateAxisItem(orientation="bottom")
-        xAxis.attachToPlotItem(self.xyPlot)
+        self.cBoxXData.currentTextChanged.connect(self.updatePlotData)
+        self.cBoxY1Data.currentTextChanged.connect(self.updatePlotData)
+        self.cBoxY2Data.currentTextChanged.connect(self.updatePlotData)
 
-        xLabelStyles = {"font": "Times", "font-size": "12pt"}
-        self.xyPlot.setLabel("bottom", self.comboBoxXData.currentText(), units="s", **xLabelStyles)  # type: ignore
-        # self.xyPlot.getAxis("bottom").label.setFont(QFont("Times", 12))  # type: ignore
-
-        self.comboBoxXData.currentTextChanged.connect(self.updatePlotData)
-        self.comboBoxYData.currentTextChanged.connect(self.updatePlotData)
+        self.xyPlot.getViewBox().sigResized.connect(self.updateViews)  # type: ignore
 
     def processData(self):
         # Convert datetime to timestamp
         self.df[self.timeColName] = self.df[self.timeColName].apply(pd.Timestamp.timestamp)
-        # print(self.df[self.timeColName])
 
     @pyqtSlot()
     def updatePlotData(self):
         sender = self.sender()  # type: ignore
 
         self.xyPlot.setTitle(  # type: ignore
-            f"{self.comboBoxYData.currentText()} vs {self.comboBoxXData.currentText()}"
+            f"{self.cBoxY1Data.currentText()} & {self.cBoxY2Data.currentText()} vs {self.cBoxXData.currentText()}"
         )
-        if sender is self.comboBoxXData:
-            self.xyPlot.setLabel("bottom", self.comboBoxXData.currentText())  # type: ignore
-            self.dataX = self.df[self.comboBoxXData.currentText()].tolist()
-        elif sender is self.comboBoxYData:
-            self.xyPlot.setLabel("left", self.comboBoxYData.currentText())  # type: ignore
-            self.dataY = self.df[self.comboBoxYData.currentText()].tolist()
+        if sender is self.cBoxXData:
+            self.xyPlot.setLabel("bottom", self.cBoxXData.currentText())  # type: ignore
+            self.dataX = self.df[self.cBoxXData.currentText()].tolist()
+        elif sender is self.cBoxY1Data:
+            self.xyPlot.setLabel("left", self.cBoxY1Data.currentText())  # type: ignore
+            self.dataY1 = self.df[self.cBoxY1Data.currentText()].tolist()
+        elif sender is self.cBoxY2Data:
+            self.xyPlot.setLabel("right", self.cBoxY2Data.currentText())  # type: ignore
+            self.dataY2 = self.df[self.cBoxY2Data.currentText()].tolist()
 
-        self.lineDataRef.setData(self.dataX, self.dataY)  # Update the line data ref
-        self.changeLabel(self.xyPlot, self.lineDataRef, self.comboBoxYData.currentText())
+        self.y1LineRef.setData(self.dataX, self.dataY1)  # Update the Y1 line data ref
+        self.y2LineRef.setData(self.dataX, self.dataY2)  # Update the Y2 line data ref
+
+        self.changeLegendLabel(self.xyPlot, self.y1LineRef, self.cBoxY1Data.currentText())
+        self.changeLegendLabel(self.xyPlot, self.y2LineRef, self.cBoxY2Data.currentText())
+
+        self.updateViews()
+
+    # Handle view resizing
+    def updateViews(self):
+        # View has resized; update auxiliary views to match
+        self.viewBoxY2.setGeometry(self.xyPlot.getViewBox().sceneBoundingRect())  # type: ignore
+
+        # Need to re-update linked axes since this was called incorrectly while views had different shapes
+        # (probably this should be handled in ViewBox.resizeEvent)
+        self.viewBoxY2.linkedViewChanged(self.xyPlot.getViewBox(), self.viewBoxY2.XAxis)  # type: ignore
 
     def setComboBoxesDataModel(self, headers=[]):
-        self.comboBoxXDataModel = QStringListModel([headers[0]])
-        self.comboBoxXData.setModel(self.comboBoxXDataModel)
-        self.comboBoxXData.setCurrentIndex(0)
+        self.cBoxXDataModel = QStringListModel([headers[0]])
+        self.cBoxXData.setModel(self.cBoxXDataModel)
+        self.cBoxXData.setCurrentIndex(0)
 
-        self.comboBoxYDataModel = QStringListModel(headers[1:])  # without Time column
-        self.comboBoxYData.setModel(self.comboBoxYDataModel)
-        self.comboBoxYData.setCurrentIndex(0)
+        self.cBoxY1DataModel = QStringListModel(headers[1:])  # without Time column
+        self.cBoxY1Data.setModel(self.cBoxY1DataModel)
+        self.cBoxY1Data.setCurrentIndex(0)
+
+        self.cBoxY2DataModel = QStringListModel(headers[1:])  # without Time column
+        self.cBoxY2Data.setModel(self.cBoxY2DataModel)
+        self.cBoxY2Data.setCurrentIndex(1)
 
     def updateCrosshair(self, event):
         # event[0] holds a positional argument
@@ -125,21 +174,21 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
 
     def onClick(self, event):
         # items = self.xyPlot.scene().items(event.scenePos())
-        mousePoint = self.vb.mapSceneToView(event._scenePos)  # type: ignore
+        mousePoint = self.viewBoxY1.mapSceneToView(event._scenePos)  # type: ignore
         print(mousePoint.x(), mousePoint.y())
         if self.xyPlot.sceneBoundingRect().contains(event._scenePos):  # type: ignore
-            mousePoint = self.vb.mapSceneToView(event._scenePos)  # type: ignore
+            mousePoint = self.viewBoxY1.mapSceneToView(event._scenePos)  # type: ignore
             # # Convert obtained float value to datetime with time zone info
             # xVal2DateTime = pd.to_datetime(mousePoint.x(), unit="s")
             # myTimeZone = pytz.timezone("Europe/Prague")
             # dateTimeWithTimeZone = myTimeZone.localize(xVal2DateTime)
 
-            self.labelDataClick1.setText(f"t={mousePoint.x()}, y={mousePoint.y():.3f}")
+            self.labelDataClick1.setText(f"X={mousePoint.x()}, Y1={mousePoint.y():.3f}")
 
     def setMeasurementDate(self, measDate):
         self.labelMeasDateValue.setText(measDate)
 
-    def changeLabel(self, plot, plotItem, name):
+    def changeLegendLabel(self, plot, plotItem, name):
         # Change the label of given PlotDataItem in the plot's legend
         plot.legend.removeItem(plotItem)
         plot.legend.addItem(plotItem, name)

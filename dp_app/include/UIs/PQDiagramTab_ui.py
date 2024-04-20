@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_PQDiagramTab(object):
     def setupUi(self, PQDiagramTab):
         PQDiagramTab.setObjectName("PQDiagramTab")
-        PQDiagramTab.resize(600, 600)
+        PQDiagramTab.resize(800, 600)
         self.verticalLayout = QtWidgets.QVBoxLayout(PQDiagramTab)
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayout = QtWidgets.QGridLayout()

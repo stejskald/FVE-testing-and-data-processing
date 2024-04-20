@@ -162,8 +162,8 @@ class DateAxisItem(AxisItem):
 
         else:
             # less than 2s (show microseconds)
-            # fmt = '%S.%f"'
-            fmt = "[+%fms]"  # explicitly relative to last second
+            fmt = '%S.%f"'
+            # fmt = "[+%fms]"  # explicitly relative to last second
 
         for x in values:
             try:
