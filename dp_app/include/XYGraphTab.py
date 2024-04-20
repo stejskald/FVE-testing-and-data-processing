@@ -26,11 +26,30 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.pen = pg.mkPen(color="#4393c3", width=2, style=Qt.PenStyle.SolidLine)
         self.xyPlot.setTitle("XY Graph")  # type: ignore
 
-    def loadData(self, dataFrame):
-        self.df = dataFrame.copy()
+        # Add crosshair lines
+        self.crosshair_v = pg.InfiniteLine(angle=90)
+        self.crosshair_h = pg.InfiniteLine(angle=0)
+        self.XYGraph.addItem(self.crosshair_v, ignoreBounds=True)  # type: ignore
+        self.XYGraph.addItem(self.crosshair_h, ignoreBounds=True)  # type: ignore
 
+        # Setup a SignalProxy and connect it to a updateCrosshair method
+        # Whenever the mouse is moved over the plot, the updateCrosshair is called with an event as an argument
+        self.proxy = pg.SignalProxy(self.XYGraph.scene().sigMouseMoved, rateLimit=60, slot=self.updateCrosshair)
+
+        # Hide the cursor over the plot
+        cursor = Qt.CursorShape.BlankCursor
+        self.XYGraph.setCursor(cursor)
+
+        self.vb = self.xyPlot.vb  # type: ignore
+        self.xyPlot.scene().sigMouseClicked.connect(self.onClick)  # type: ignore
+
+    def loadData(self, dataFrame):
         # Get name of the first column with "Time"
         self.timeColName = [col for col in dataFrame.columns if "Time" in col][0]
+
+        # Make a reference to the dataFrame and copy only the timeColName column (will be processed subsequently)
+        self.df = dataFrame.loc[:, dataFrame.columns != self.timeColName]
+        self.df[self.timeColName] = dataFrame[self.timeColName].copy()
 
         self.processData()
 
@@ -58,7 +77,6 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         xAxis = DateAxisItem(orientation="bottom")
         xAxis.attachToPlotItem(self.xyPlot)
 
-        # TODO Remove units??? Showing "G" at the beginning
         xLabelStyles = {"font": "Times", "font-size": "12pt"}
         self.xyPlot.setLabel("bottom", self.comboBoxXData.currentText(), units="s", **xLabelStyles)  # type: ignore
         # self.xyPlot.getAxis("bottom").label.setFont(QFont("Times", 12))  # type: ignore
@@ -69,6 +87,7 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
     def processData(self):
         # Convert datetime to timestamp
         self.df[self.timeColName] = self.df[self.timeColName].apply(pd.Timestamp.timestamp)
+        # print(self.df[self.timeColName])
 
     @pyqtSlot()
     def updatePlotData(self):
@@ -95,6 +114,27 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.comboBoxYDataModel = QStringListModel(headers[1:])  # without Time column
         self.comboBoxYData.setModel(self.comboBoxYDataModel)
         self.comboBoxYData.setCurrentIndex(0)
+
+    def updateCrosshair(self, event):
+        # event[0] holds a positional argument
+        pos = event[0]
+        if self.XYGraph.sceneBoundingRect().contains(pos):
+            mousePoint = self.XYGraph.getPlotItem().vb.mapSceneToView(pos)  # type: ignore
+            self.crosshair_v.setPos(mousePoint.x())
+            self.crosshair_h.setPos(mousePoint.y())
+
+    def onClick(self, event):
+        # items = self.xyPlot.scene().items(event.scenePos())
+        mousePoint = self.vb.mapSceneToView(event._scenePos)  # type: ignore
+        print(mousePoint.x(), mousePoint.y())
+        if self.xyPlot.sceneBoundingRect().contains(event._scenePos):  # type: ignore
+            mousePoint = self.vb.mapSceneToView(event._scenePos)  # type: ignore
+            # # Convert obtained float value to datetime with time zone info
+            # xVal2DateTime = pd.to_datetime(mousePoint.x(), unit="s")
+            # myTimeZone = pytz.timezone("Europe/Prague")
+            # dateTimeWithTimeZone = myTimeZone.localize(xVal2DateTime)
+
+            self.labelDataClick1.setText(f"t={mousePoint.x()}, y={mousePoint.y():.3f}")
 
     def setMeasurementDate(self, measDate):
         self.labelMeasDateValue.setText(measDate)

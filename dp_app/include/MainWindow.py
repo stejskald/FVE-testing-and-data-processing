@@ -445,7 +445,7 @@ class MainWindow(QMainWindow):
         AvgU_Ph2Ph = np.array(self.csvData[["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"]]).mean(axis=1)
         # Delete these 3 columns in the DataFrame
         self.csvData = self.csvData.drop(["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"], axis=1)
-        # TODO Add a new column "Avg.UΔ[V]" as the 1st
+        # Add a new column "Avg.UΔ[V]" as the 1st
         self.csvData.insert(1, "Avg.UΔ[V]", AvgU_Ph2Ph, True)
 
     # @pyqtSlot()
