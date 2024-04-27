@@ -1,16 +1,15 @@
-# import sys
-from datetime import datetime
-import pandas as pd
-from os import path as path
-import dp_app.include.fileTools as ft
-import numpy as np
 from include.ControlPanelTab import ControlPanelTab
 from include.CSVDataTab import CSVDataTab
 from include.PQDiagramTab import PQDiagramTab
 from include.XYGraphTab import XYGraphTab
-from PyQt6.QtCore import QSize, pyqtSlot
+from PyQt6.QtCore import QSize, pyqtSlot, QProcess
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
 from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox  # , QProgressBar
+import dp_app.include.fileTools as ft
+from os import path
+from datetime import datetime
+import pandas as pd
+import numpy as np
 
 # relative pathing to handle situation when starting the app from different locations
 includeDir = path.dirname(__file__)
@@ -23,15 +22,15 @@ class MainWindow(QMainWindow):
     def __init__(self):  # , data, columns):
         super(MainWindow, self).__init__()
         # Read settings from configuration file
-        self.mWinReadConfig()
+        self.readConfig()
 
         self.setWindowTitle("The application for data processing of FVE testing")
         self.setWindowIcon(QIcon(path.join(appBaseDir, "icons", "solar-panel.ico")))
 
         # Scale Main Window relatively to the Main Display size
         screenGeom = self.screen().availableGeometry()  # type: ignore
-        self.setFixedSize(int(screenGeom.width() * 0.5), int(screenGeom.height() * 0.5))
-        self.setMinimumSize(QSize(800, 600))
+        self.setFixedSize(int(screenGeom.width() * 0.8), int(screenGeom.height() * 0.8))
+        self.setMinimumSize(QSize(1200, 800))
         # self.showMaximized() #Full screen
 
         # Initialize the Menu Bar
@@ -47,7 +46,7 @@ class MainWindow(QMainWindow):
         self.mWinStatusBarInit()
 
         # Initialize the App Shortcuts
-        self.mWinShortcutsInit()
+        # self.mWinShortcutsInit()
 
         # Initialize the Open CSV Dialog
         self.mWinOpenFileDialogInit()
@@ -55,28 +54,38 @@ class MainWindow(QMainWindow):
         # Initialize the Progress Bar
         # self.mWinProgressBarInit() #TODO Finish
 
+        self.processNotepad = None
+
         self.setCentralWidget(self.tabs)
 
-    def mWinReadConfig(self):
+    def readConfig(self):
         # Read the csvDataSeparator from the INI config file
-        self.csvDataSeparator = ft.iniReadSectionKey(
-            path.join(appBaseDir, "appConfig.ini"),
-            "app.csv_data",
-            "data_separator",
+        self.csvDataSeparator = str(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.csv_data",
+                "data_separator",
+            )
         )
 
         # Read the date_time_format from the INI config file
-        self.csvDateTimeFmt = ft.iniReadSectionKey(
-            path.join(appBaseDir, "appConfig.ini"),
-            "app.csv_data",
-            "date_time_format",
+        self.csvDateTimeFmt = str(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.csv_data",
+                "date_time_format",
+            )
         )
 
-        # Read the filtered_columns from the INI config file
-        self.csvSamplePeriod = ft.iniReadSectionKey(
-            path.join(appBaseDir, "appConfig.ini"),
-            "app.csv_data",
-            "sample_period_s",
+        # Read the sample_period_s from the INI config file
+        self.csv_dt = float(
+            str(
+                ft.iniReadSectionKey(
+                    path.join(appBaseDir, "appConfig.ini"),
+                    "app.csv_data",
+                    "sample_period_s",
+                )
+            )
         )
 
         # Read the filtered_columns from the INI config file
@@ -86,15 +95,37 @@ class MainWindow(QMainWindow):
             "filtered_columns",
         )
 
+        # Read the avg_voltages_ph2ph from the INI config file
+        self.avgVoltagesPh2Ph = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "avg_voltages_ph2ph",
+        )
+
+        # Read the avg_u_ph2ph_mean from the INI config file
+        self.avgVoltPh2PhMean = str(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.csv_data",
+                "avg_u_ph2ph_mean",
+            )
+        )
+
     def mWinMenuInit(self):
         # Menu Bar
         self.mainMenuBar = self.menuBar()
 
         # Menu Bar - File Menu
         self.fileMenu = self.mainMenuBar.addMenu("&File")  # type: ignore
-
-        fileSubmenu1 = self.fileMenu.addMenu("&Submenu")  # type: ignore
-        fileSubmenu1.addAction(QAction("Hello!", self))  # type: ignore
+        btnOpenConfigFile = QAction(
+            QIcon(path.join(appBaseDir, "icons", "settings.ico")),
+            "Open App &Config File",
+            self,
+        )
+        btnOpenConfigFile.setShortcut(QKeySequence("Ctrl+I"))
+        btnOpenConfigFile.setStatusTip("Push to open the application configuration file.")
+        btnOpenConfigFile.triggered.connect(self.openNotepad)  # type: ignore
+        self.fileMenu.addAction(btnOpenConfigFile)  # type: ignore
 
         # Menu Bar - File Menu - Exit QAction
         btnExitApp = QAction(
@@ -162,6 +193,7 @@ class MainWindow(QMainWindow):
             "Generate Final &Report",
             self,
         )
+        self.btnGenerateFinalReport.setShortcut(QKeySequence("Ctrl+P"))
         self.btnGenerateFinalReport.triggered.connect(self.btnClicked)
         reportMenu.addAction(self.btnGenerateFinalReport)  # type: ignore
 
@@ -249,9 +281,9 @@ class MainWindow(QMainWindow):
         self.openFileDialog.setDirectory(path.join(appBaseDir, "data"))
 
     def mWinShortcutsInit(self):
-        # Print Final Report Shortcut
-        self.shortcut = QShortcut(QKeySequence("Ctrl+P"), self)
-        self.shortcut.activated.connect(self.printReport)
+        # Print Final Report Shortcut - without a need of initializing the button
+        self.shortcutPrint = QShortcut(QKeySequence("Ctrl+R"), self)
+        self.shortcutPrint.activated.connect(self.printReport)
 
     # TODO Finish
     # def mWinProgressBarInit(self):
@@ -259,6 +291,19 @@ class MainWindow(QMainWindow):
     #     self.progressBar.setGeometry(180, 200, 250, 20)
     #     self.controlTab.btnImportCSV.clicked.connect(self.updateProgressBar)
     #     self.progressBar.hide()
+
+    @pyqtSlot()
+    def openNotepad(self):
+        if self.processNotepad is None:  # No process running.
+            self.processNotepad = QProcess()  # Keep a reference to the QProcess (e.g. on self) while it's running
+            self.processNotepad.finished.connect(self.processNotepadFinished)  # Clean up once complete.
+            self.processNotepad.start("Notepad", [path.join(appBaseDir, "appConfig.ini")])
+            self.mainStatusBar.showMessage("The configuration file has been opened.")
+
+    @pyqtSlot()
+    def processNotepadFinished(self):
+        self.processNotepad = None
+        self.mainStatusBar.showMessage("The configuration file has been closed")
 
     # @pyqtSlot() <- TypeError: missing 1 required positional argument: 'visibility'
     def setToolbarVisibility(self, visibility):
@@ -281,107 +326,10 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def btnClicked(self):
-        sender = self.sender().text()  # .objectName()  # type: ignore
-        # print(sender)
+        sender = self.sender().text()  # type: ignore
 
         if sender == "&Import CSV Data":  # or btn from CSV Menu
-            # Open CSV File dialog
-            if self.openFileDialog.exec():
-                self.csvFilePath = self.openFileDialog.selectedFiles()[0]
-                # self.csvFilePath = QFileDialog.getOpenFileName(
-                #     self, "Open a CSV file", path.join(appBaseDir, "data"), "CSV files (*.csv)"
-                # )
-
-                # Check if all columns listed in the configuration file are in the data file
-                self.csvAllHeaders = ft.csvReadHeaders(self.csvFilePath, self.csvDataSeparator)
-
-                incorrectHeaders = []
-                for header in self.csvHeaders:
-                    if header not in self.csvAllHeaders:
-                        incorrectHeaders.append(header)
-                if not incorrectHeaders:  # List is empty
-                    # An informative message shown #REVIEW Uncomment to show a MessageBox
-                    # QMessageBox.information(
-                    #     self,
-                    #     "Informative - CSV loading time",
-                    #     "The file is loading, please wait, it may take a few minutes if the file is too large "
-                    #     + "(10 MB takes about 40 sec).",
-                    #     buttons=QMessageBox.StandardButton.Ok,
-                    #     defaultButton=QMessageBox.StandardButton.Ok,
-                    # )
-
-                    # self.mainStatusBar.showMessage(
-                    #     "The file is loading, please wait, it may take a few minutes if the file is too large "
-                    #     + "(10MB takes about 40 sec)."
-                    # )
-
-                    # self.progressBar.show()
-
-                    # Read data from CSV file
-                    self.csvData = ft.readCSVdata(self.csvFilePath, self.csvDataSeparator, self.csvHeaders)
-
-                    # TODO Progress bar -----------------------------
-                    # from tqdm import tqdm
-
-                    # LINES_TO_READ_FOR_EST = 20
-                    # CHUNK_SIZE_PER_ITER = 10**5
-
-                    # temp = pd.read_csv(self.csvFilePath, nrows=LINES_TO_READ_FOR_EST)
-                    # N = len(temp.to_csv(index=False))
-                    # df = [temp[:0]]
-                    # t = int(path.getsize(self.csvFilePath) / N * LINES_TO_READ_FOR_EST / CHUNK_SIZE_PER_ITER) + 1
-
-                    # with tqdm(total=t, file=sys.stdout) as pbar:
-                    #     for i, chunk in enumerate(
-                    #         pd.read_csv(self.csvFilePath, chunksize=CHUNK_SIZE_PER_ITER, low_memory=False)
-                    #     ):
-                    #         df.append(chunk)
-                    #         pbar.set_description("Importing: %d" % (1 + i))
-                    #         pbar.update(1)
-
-                    # data = temp[:0].append(df)
-                    # del df
-                    # ----------------------------------------------------------
-
-                    # Adjust the DateTime column to have info about milliseconds and the time zone
-                    # e.g.: "2023-08-31 11:15:24" -> "2023-08-31 11:15:24.200000 +0200"
-                    self.adjustDateTimeColumn()
-
-                    # Adjust the data in the 3Cosφ[] column "C -0.18" -> float(-0.18)
-                    self.adjust3CosPhiColumn()
-
-                    # Mean of 3 columns: ["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"]
-                    self.makeMeanOfPh2PhAvgVoltages()
-
-                    # Set the TableView Data Model and upload the loaded data
-                    self.csvDataTab.setTableDataModel(self.csvData)
-
-                    # Show info about CSV file was loaded
-                    self.mainStatusBar.showMessage("The CSV file has been loaded")
-
-                    # BUG
-                    # Set the TableView Data Model and upload the loaded data
-                    self.xyGraphTab.setComboBoxesDataModel(self.csvData.columns.to_list())
-
-                    # Load CSV data to the xyGraphTab ans set the date
-                    self.xyGraphTab.loadData(self.csvData)
-                    self.xyGraphTab.setMeasurementDate(self.measDate)
-
-                    # Load CSV data to the pqDiagramTab ans set the date
-                    self.pqDiagramTab.loadData(self.csvData)
-                    self.pqDiagramTab.setMeasurementDate(self.measDate)
-
-                else:
-                    # A critical message shown
-                    QMessageBox.critical(
-                        self,
-                        "Incorrect Configuration File - Wrong headers",
-                        "The following headers listed in the configuration file were not found in the CSV Data file: "
-                        + f"{incorrectHeaders}. Close the application, edit the configuration file and start the "
-                        + "application again.",
-                        buttons=QMessageBox.StandardButton.Ok,
-                        defaultButton=QMessageBox.StandardButton.Ok,
-                    )
+            self.importCSVdata()
 
         elif sender == "&Show CSV Data":
             # Show CSV Data tab
@@ -397,6 +345,105 @@ class MainWindow(QMainWindow):
 
         elif sender == "Generate Final &Report":
             self.mainStatusBar.showMessage("Generate Final Report button has been pressed")
+            self.printReport()
+
+    def importCSVdata(self):
+        # Open CSV File dialog
+        if self.openFileDialog.exec():
+            self.csvFilePath = self.openFileDialog.selectedFiles()[0]
+            # self.csvFilePath = QFileDialog.getOpenFileName(
+            #     self, "Open a CSV file", path.join(appBaseDir, "data"), "CSV files (*.csv)"
+            # )
+
+            # Check if all columns listed in the configuration file are in the data file
+            self.csvAllHeaders = ft.csvReadHeaders(self.csvFilePath, self.csvDataSeparator)
+
+            incorrectHeaders = []
+            for header in self.csvHeaders:
+                if header not in self.csvAllHeaders:
+                    incorrectHeaders.append(header)
+            if not incorrectHeaders:  # List is empty
+                # An informative message shown #REVIEW Uncomment to show a MessageBox
+                # QMessageBox.information(
+                #     self,
+                #     "Informative - CSV loading time",
+                #     "The file is loading, please wait, it may take a few minutes if the file is too large "
+                #     + "(10 MB takes about 40 sec).",
+                #     buttons=QMessageBox.StandardButton.Ok,
+                #     defaultButton=QMessageBox.StandardButton.Ok,
+                # )
+
+                # self.mainStatusBar.showMessage(
+                #     "The file is loading, please wait, it may take a few minutes if the file is too large "
+                #     + "(10MB takes about 40 sec)."
+                # )
+
+                # self.progressBar.show()
+
+                # Read data from CSV file
+                self.csvData = ft.readCSVdata(self.csvFilePath, self.csvDataSeparator, self.csvHeaders)
+
+                # TODO Progress bar -----------------------------
+                # from tqdm import tqdm
+
+                # LINES_TO_READ_FOR_EST = 20
+                # CHUNK_SIZE_PER_ITER = 10**5
+
+                # temp = pd.read_csv(self.csvFilePath, nrows=LINES_TO_READ_FOR_EST)
+                # N = len(temp.to_csv(index=False))
+                # df = [temp[:0]]
+                # t = int(path.getsize(self.csvFilePath) / N * LINES_TO_READ_FOR_EST / CHUNK_SIZE_PER_ITER) + 1
+
+                # with tqdm(total=t, file=sys.stdout) as pbar:
+                #     for i, chunk in enumerate(
+                #         pd.read_csv(self.csvFilePath, chunksize=CHUNK_SIZE_PER_ITER, low_memory=False)
+                #     ):
+                #         df.append(chunk)
+                #         pbar.set_description("Importing: %d" % (1 + i))
+                #         pbar.update(1)
+
+                # data = temp[:0].append(df)
+                # del df
+                # ----------------------------------------------------------
+
+                # Adjust the DateTime column to have info about milliseconds and the time zone
+                # e.g.: "2023-08-31 11:15:24" -> "2023-08-31 11:15:24.200000 +0200"
+                self.adjustDateTimeColumn()
+
+                # Adjust the data in the 3Cosφ[] column "C -0.18" -> float(-0.18)
+                self.adjust3CosPhiColumn()
+
+                # Mean of 3 Ph2Ph Voltages columns
+                self.makeMeanOfPh2PhAvgVoltages()
+
+                # Set the TableView Data Model and upload the loaded data
+                self.csvDataTab.setTableDataModel(self.csvData)
+
+                # Show info about CSV file was loaded
+                self.mainStatusBar.showMessage("The CSV file has been loaded")
+
+                # Set the TableView Data Model and upload the loaded data
+                self.xyGraphTab.setComboBoxesDataModel(self.csvData.columns.to_list())
+
+                # Load CSV data to the xyGraphTab ans set the date
+                self.xyGraphTab.loadData(self.csvData)
+                self.xyGraphTab.setMeasurementDate(self.measDate)
+
+                # Load CSV data to the pqDiagramTab ans set the date
+                self.pqDiagramTab.loadData(self.csvData)
+                self.pqDiagramTab.setMeasurementDate(self.measDate)
+
+            else:
+                # A critical message shown
+                QMessageBox.critical(
+                    self,
+                    "Incorrect Configuration File - Wrong headers",
+                    "The following headers listed in the configuration file were not found in the CSV Data file: "
+                    + f"{incorrectHeaders}. Close the application, edit the configuration file and start the "
+                    + "application again.",
+                    buttons=QMessageBox.StandardButton.Ok,
+                    defaultButton=QMessageBox.StandardButton.Ok,
+                )
 
     def adjustDateTimeColumn(self):
         # Find name of the first column with "Time"
@@ -405,11 +452,10 @@ class MainWindow(QMainWindow):
         timeValues = self.csvData[self.timeColName].tolist()
 
         # Check if the time starts at the whole second
-        dt = float(str(self.csvSamplePeriod))
-        runCount = int(1 / dt)  # run count per each second (5 times if dt is 0.2 sec)
+        runCount = int(1 / self.csv_dt)  # run count per each second (5 times if dt is 0.2 sec)
         ptimeSecs = []
         for dateTimeStr in timeValues[:runCount]:
-            pt = datetime.strptime(dateTimeStr, "%Y-%m-%d %H:%M:%S")  # parsed datetime
+            pt = datetime.strptime(dateTimeStr, self.csvDateTimeFmt)  # parsed datetime
             ptimeSecs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
         # Detect differences in the time (list ptimeSecs)
         timeDiffs = list(np.array(ptimeSecs[:-1]) - np.array(ptimeSecs[1:]))
@@ -419,7 +465,7 @@ class MainWindow(QMainWindow):
         runIter = runCount - (timeDiffs.index(-1) + 1)
         for idx, row in self.csvData.iterrows():  # Iterate over rows
             self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx] = (
-                row[self.timeColName] + f"{runIter*dt:.3f}"[1:] + " +0200"
+                row[self.timeColName] + f"{runIter*self.csv_dt:.3f}"[1:] + " +0200"
             )
             runIter += 1
             if runIter == runCount:
@@ -441,12 +487,12 @@ class MainWindow(QMainWindow):
         self.csvData[cosPhiColName] = pd.to_numeric(self.csvData[cosPhiColName], errors="coerce")
 
     def makeMeanOfPh2PhAvgVoltages(self):
-        # Average for each row in columns "Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"
-        AvgU_Ph2Ph = np.array(self.csvData[["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"]]).mean(axis=1)
+        # Average for each row in Avg Voltage Ph2Ph columns
+        AvgU_Ph2Ph = np.array(self.csvData[self.avgVoltagesPh2Ph]).mean(axis=1)
         # Delete these 3 columns in the DataFrame
-        self.csvData = self.csvData.drop(["Avg.U12[V]", "Avg.U23[V]", "Avg.U31[V]"], axis=1)
-        # Add a new column "Avg.UΔ[V]" as the 1st
-        self.csvData.insert(1, "Avg.UΔ[V]", AvgU_Ph2Ph, True)
+        self.csvData = self.csvData.drop(self.avgVoltagesPh2Ph, axis=1)
+        # Add a new column as the 1st
+        self.csvData.insert(1, self.avgVoltPh2PhMean, AvgU_Ph2Ph, True)
 
     # @pyqtSlot()
     # def updateProgressBar(self):

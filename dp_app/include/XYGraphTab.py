@@ -4,9 +4,11 @@ from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QWidget
 import pyqtgraph as pg
+import dp_app.include.fileTools as ft
 import pandas as pd
+from os import path
 
-# import numpy as np
+appBaseDir = path.abspath(path.join(__file__, "../.."))
 
 
 # pyuic6 dp-qtdesktopapp/include/UIs/XYGraphTab.ui -o dp-qtdesktopapp/include/UIs/XYGraphTab_ui.py
@@ -14,6 +16,9 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
     def __init__(self):
         super(XYGraphTab, self).__init__()
         self.setupUi(self)
+
+        # Read settings from configuration file
+        self.readConfig()
 
         # Set background colour - default window color background
         xyGraphBGcolor = self.palette().color(QPalette.ColorRole.Base)
@@ -64,7 +69,51 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.XYGraph.setCursor(cursor)
 
         self.viewBoxY1 = self.xyPlot.getViewBox()  # type: ignore
-        self.xyPlot.scene().sigMouseClicked.connect(self.onClick)  # type: ignore
+        self.xyPlot.scene().sigMouseClicked.connect(self.onGraphClick)  # type: ignore
+
+        self.checkBox.stateChanged.connect(self.secondViewEnabled)
+
+        self.dblSpinBoxSetpoint.setValue(self.setpoint)
+        self.dblSpinBoxSetpoint.valueChanged.connect(self.updateSetpointError)
+
+        self.btnAutoRephase.clicked.connect(self.processTest)
+        self.btnGradient.clicked.connect(self.processTest)
+        self.btnRiseTime.clicked.connect(self.processTest)
+        self.testActivated = False
+        self.clickCount = 0
+        self.clickDataX = []
+        self.clickDataY = []
+        self.processVarMaxVal = 0
+
+    def readConfig(self):
+        # Read the setpoint from the INI config file
+        self.setpoint = float(
+            str(
+                ft.iniReadSectionKey(
+                    path.join(appBaseDir, "appConfig.ini"),
+                    "app.xy_graph",
+                    "setpoint",
+                )
+            )
+        )
+
+        # Read the real_power_3ph from the INI config file
+        self.realPower3ph = str(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.pq_diagram",
+                "real_power_3ph",
+            )
+        )
+
+        # Read the reactive_power_3ph from the INI config file
+        self.reactivePower3ph = str(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.pq_diagram",
+                "reactive_power_3ph",
+            )
+        )
 
     def loadData(self, dataFrame):
         # Get name of the first column with "Time"
@@ -143,6 +192,7 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.updateViews()
 
     # Handle view resizing
+    @pyqtSlot()
     def updateViews(self):
         # View has resized; update auxiliary views to match
         self.viewBoxY2.setGeometry(self.xyPlot.getViewBox().sceneBoundingRect())  # type: ignore
@@ -150,6 +200,21 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         # Need to re-update linked axes since this was called incorrectly while views had different shapes
         # (probably this should be handled in ViewBox.resizeEvent)
         self.viewBoxY2.linkedViewChanged(self.xyPlot.getViewBox(), self.viewBoxY2.XAxis)  # type: ignore
+
+    def secondViewEnabled(self, state):
+        if not state:
+            self.cBoxY2Data.setDisabled(True)
+            self.viewBoxY2.removeItem(self.y2LineRef)  # type: ignore
+            self.xyPlot.legend.removeItem(self.y2LineRef)  # type: ignore
+        else:
+            if hasattr(self, "y2LineRef"):
+                # self.viewBoxY2.removeItem(self.y2LineRef)  # type: ignore
+                self.xyPlot.legend.removeItem(self.y2LineRef)  # type: ignore
+            self.cBoxY2Data.setEnabled(True)
+            self.y2LineRef = pg.PlotCurveItem(pen=self.penY2, name=self.cBoxY2Data.currentText())
+            self.viewBoxY2.addItem(self.y2LineRef)
+            self.y2LineRef.setData(self.dataX, self.dataY2)
+            self.changeLegendLabel(self.xyPlot, self.y2LineRef, self.cBoxY2Data.currentText())
 
     def setComboBoxesDataModel(self, headers=[]):
         self.cBoxXDataModel = QStringListModel([headers[0]])
@@ -172,10 +237,10 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
             self.crosshair_v.setPos(mousePoint.x())
             self.crosshair_h.setPos(mousePoint.y())
 
-    def onClick(self, event):
+    def onGraphClick(self, event):
         # items = self.xyPlot.scene().items(event.scenePos())
         mousePoint = self.viewBoxY1.mapSceneToView(event._scenePos)  # type: ignore
-        print(mousePoint.x(), mousePoint.y())
+        # print(mousePoint.x(), mousePoint.y())
         if self.xyPlot.sceneBoundingRect().contains(event._scenePos):  # type: ignore
             mousePoint = self.viewBoxY1.mapSceneToView(event._scenePos)  # type: ignore
             # # Convert obtained float value to datetime with time zone info
@@ -183,15 +248,123 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
             # myTimeZone = pytz.timezone("Europe/Prague")
             # dateTimeWithTimeZone = myTimeZone.localize(xVal2DateTime)
 
-            self.labelDataClick1.setText(f"X={mousePoint.x()}, Y1={mousePoint.y():.3f}")
+            if self.testActivated:
+                self.clickDataX += [mousePoint.x()]
+                self.clickDataY += [mousePoint.y()]
+                self.clickCount += 1
+                if self.mySender is self.btnAutoRephase:
+                    if self.clickCount < 3:
+                        self.labelClickInfo1.setText(
+                            f"{self.mySender.text()}: {3-self.clickCount} clicks to graph remaining..."  # type: ignore
+                        )
+                    else:
+                        self.clickCount = 0
+                        self.testActivated = False
+                        self.labelClickInfo1.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
 
-    def setMeasurementDate(self, measDate):
-        self.labelMeasDateValue.setText(measDate)
+                        # Process Data
+                        self.labelSystemDelayVal.setText(f"{self.getSystemDelay(self.clickDataX):.3f} s")
+                        self.labelGradientVal.setText(
+                            f"{self.getGradient(self.clickDataX, self.clickDataY):.3f} (kW/kvar)/s"
+                        )
+                        self.labelRiseTimeVal.setText(
+                            # TODO implement searching of 10% and 90% in Y values
+                            f"{0.8 * self.getRiseTime(self.clickDataX, self.clickDataY):.3f} s"
+                        )
+
+                        self.findProcessVarMaxVal(self.clickDataY[2])
+                        self.updateSetpointError()
+
+                        # Clean arrays
+                        self.clickDataX = []
+                        self.clickDataY = []
+
+                elif self.mySender is self.btnGradient:
+                    if self.clickCount < 2:
+                        self.labelClickInfo2.setText(
+                            f"{self.mySender.text()}: {2-self.clickCount} clicks to graph remaining..."  # type: ignore
+                        )
+                    else:
+                        self.clickCount = 0
+                        self.testActivated = False
+                        self.labelClickInfo2.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
+
+                        # Process Data
+                        self.labelGradientVal.setText(
+                            f"{self.getGradient(self.clickDataX, self.clickDataY):.3f} (kW/kvar)/s"
+                        )
+
+                        # Clean arrays
+                        self.clickDataX = []
+                        self.clickDataY = []
+
+                elif self.mySender is self.btnRiseTime:
+                    if self.clickCount < 2:
+                        self.labelClickInfo3.setText(
+                            f"{self.mySender.text()}: {2-self.clickCount} clicks to graph remaining..."  # type: ignore
+                        )
+                    else:
+                        self.clickCount = 0
+                        self.testActivated = False
+                        self.labelClickInfo3.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
+
+                        # Process Data
+                        self.labelRiseTimeVal.setText(f"{self.getRiseTime(self.clickDataX, self.clickDataY):.3f} s")
+
+                        # Clean arrays
+                        self.clickDataX = []
+                        self.clickDataY = []
+
+    def processTest(self):
+        if not self.testActivated:
+            self.testActivated = True
+            self.clickCount = 0
+
+            self.mySender = self.sender()  # type: ignore
+            if self.mySender is self.btnAutoRephase:
+                self.labelClickInfo1.setText(f"{self.mySender.text()}: 3 clicks to graph remaining...")  # type: ignore
+
+            elif self.mySender is self.btnGradient:
+                self.labelClickInfo2.setText(f"{self.mySender.text()}: 2 clicks to graph remaining...")  # type: ignore
+
+            elif self.mySender is self.btnRiseTime:
+                self.labelClickInfo3.setText(f"{self.mySender.text()}: 2 clicks to graph remaining...")  # type: ignore
 
     def changeLegendLabel(self, plot, plotItem, name):
         # Change the label of given PlotDataItem in the plot's legend
         plot.legend.removeItem(plotItem)
         plot.legend.addItem(plotItem, name)
+
+    def setMeasurementDate(self, measDate):
+        self.labelMeasDateValue.setText(measDate)
+
+    def getSystemDelay(self, dataX):
+        return dataX[1] - dataX[0]
+
+    def getGradient(self, dataX, dataY):
+        return (dataY[-1] - dataY[-2]) / (dataX[-1] - dataX[-2])  # in (kW/kvar) / sec
+
+    # TODO Implement finding the rise point and taking only interval 10% -> 90%
+    def getRiseTime(self, dataX, dataY):
+        return dataX[-1] - dataX[-2]
+
+    def findProcessVarMaxVal(self, clickDataY):
+        # Get maximum in small interval of column selected with cBoxY1Data
+        column = self.cBoxY1Data.currentText()
+
+        # Find closest index of clicked value
+        columnValues = self.df[column].tolist()
+        closestVal = min(columnValues, key=lambda x: abs(x - clickDataY))
+        idx = columnValues.index(closestVal)
+
+        # Create small interval around the found index and get max value (it handles click inaccuracy)
+        indexes = range(idx - 10, idx + 10 + 1)
+        colSmallInterval = [columnValues[x] for x in indexes]
+        self.processVarMaxVal = max(colSmallInterval)
+
+    def updateSetpointError(self):
+        self.setpoint = self.dblSpinBoxSetpoint.value()
+        self.labelSetpointErrVal.setText(f"{self.setpoint - self.processVarMaxVal:.3f} (kW/kvar)")
 
     # # TODO: finish
     # def saveMeasuredData(self):
