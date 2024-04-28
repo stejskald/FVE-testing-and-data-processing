@@ -66,21 +66,17 @@ class PQDiagramTab(QWidget, Ui_PQDiagramTab):
 
     def readConfig(self):
         # Read the real_power_3ph from the INI config file
-        self.realPower3ph = str(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.pq_diagram",
-                "real_power_3ph",
-            )
+        self.realPower3ph = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.pq_diagram",
+            "real_power_3ph",
         )
 
         # Read the reactive_power_3ph from the INI config file
-        self.reactivePower3ph = str(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.pq_diagram",
-                "reactive_power_3ph",
-            )
+        self.reactivePower3ph = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.pq_diagram",
+            "reactive_power_3ph",
         )
 
     def loadData(self, dataFrame):

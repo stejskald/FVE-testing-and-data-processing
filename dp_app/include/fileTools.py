@@ -61,7 +61,14 @@ def iniWriteSectionKeyValues(fpath, section, key, values=[]):
             config.write(configFile)
 
 
-def iniReadSectionKey(fpath, section, key):
+def iniReadSectionKey(fpath, section, key) -> str:
+    # Read the configuration file
+    config.read(fpath, encoding="utf-8")
+
+    return config[section][key]
+
+
+def iniReadSectionKeyItems(fpath, section, key) -> list[str]:
     # Read the configuration file
     config.read(fpath, encoding="utf-8")
 
@@ -79,7 +86,7 @@ def iniReadSectionKey(fpath, section, key):
     myString = "".join(char for char in myString if char not in "\n")  # Removes all '\n' signs
 
     if myString.find(",") == -1:
-        return myString
+        return []
     else:
         return myString.split(",")
 

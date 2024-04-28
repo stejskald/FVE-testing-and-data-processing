@@ -60,55 +60,47 @@ class MainWindow(QMainWindow):
 
     def readConfig(self):
         # Read the csvDataSeparator from the INI config file
-        self.csvDataSeparator = str(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.csv_data",
-                "data_separator",
-            )
+        self.csvDataSeparator = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "data_separator",
         )
 
         # Read the date_time_format from the INI config file
-        self.csvDateTimeFmt = str(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.csv_data",
-                "date_time_format",
-            )
+        self.csvDateTimeFmt = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "date_time_format",
         )
 
         # Read the sample_period_s from the INI config file
         self.csv_dt = float(
-            str(
-                ft.iniReadSectionKey(
-                    path.join(appBaseDir, "appConfig.ini"),
-                    "app.csv_data",
-                    "sample_period_s",
-                )
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.csv_data",
+                "sample_period_s",
             )
         )
 
         # Read the filtered_columns from the INI config file
-        self.csvHeaders = ft.iniReadSectionKey(
+        self.csvHeaders = ft.iniReadSectionKeyItems(
             path.join(appBaseDir, "appConfig.ini"),
             "app.csv_data",
             "filtered_columns",
         )
 
         # Read the avg_voltages_ph2ph from the INI config file
-        self.avgVoltagesPh2Ph = ft.iniReadSectionKey(
+        self.avgVoltagesPh2Ph = ft.iniReadSectionKeyItems(
             path.join(appBaseDir, "appConfig.ini"),
             "app.csv_data",
             "avg_voltages_ph2ph",
         )
 
         # Read the avg_u_ph2ph_mean from the INI config file
-        self.avgVoltPh2PhMean = str(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.csv_data",
-                "avg_u_ph2ph_mean",
-            )
+        self.avgVoltPh2PhMean = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.csv_data",
+            "avg_u_ph2ph_mean",
         )
 
     def mWinMenuInit(self):
@@ -270,7 +262,7 @@ class MainWindow(QMainWindow):
     def mWinStatusBarInit(self):
         self.mainStatusBar = QStatusBar(self)
         self.setStatusBar(self.mainStatusBar)
-        self.mainStatusBar.showMessage("Welcome Operator! Let's load a CSV file")
+        self.mainStatusBar.showMessage("Welcome Operator! Let's load a CSV file.")
 
     def mWinOpenFileDialogInit(self):
         self.openFileDialog = QFileDialog(self)
@@ -303,7 +295,7 @@ class MainWindow(QMainWindow):
     @pyqtSlot()
     def processNotepadFinished(self):
         self.processNotepad = None
-        self.mainStatusBar.showMessage("The configuration file has been closed")
+        self.mainStatusBar.showMessage("The configuration file has been closed.")
 
     # @pyqtSlot() <- TypeError: missing 1 required positional argument: 'visibility'
     def setToolbarVisibility(self, visibility):
@@ -322,7 +314,7 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def printReport(self):
-        self.mainStatusBar.showMessage("Printing!")
+        self.mainStatusBar.showMessage("Printing called...")
 
     @pyqtSlot()
     def btnClicked(self):
@@ -344,7 +336,7 @@ class MainWindow(QMainWindow):
             self.tabs.setCurrentIndex(self.pqDiagramTabIdx)
 
         elif sender == "Generate Final &Report":
-            self.mainStatusBar.showMessage("Generate Final Report button has been pressed")
+            self.mainStatusBar.showMessage("The Generate Final Report button has been pressed.")
             self.printReport()
 
     def importCSVdata(self):
@@ -420,7 +412,7 @@ class MainWindow(QMainWindow):
                 self.csvDataTab.setTableDataModel(self.csvData)
 
                 # Show info about CSV file was loaded
-                self.mainStatusBar.showMessage("The CSV file has been loaded")
+                self.mainStatusBar.showMessage("The CSV file has been loaded.")
 
                 # Set the TableView Data Model and upload the loaded data
                 self.xyGraphTab.setComboBoxesDataModel(self.csvData.columns.to_list())

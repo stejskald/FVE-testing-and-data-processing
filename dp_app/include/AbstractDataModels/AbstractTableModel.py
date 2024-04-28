@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QAbstractTableModel, Qt
+from PyQt6.QtCore import QAbstractTableModel, QModelIndex, Qt
 from PyQt6.QtGui import QColor, QIcon
 import os.path as path
 import dp_app.include.fileTools as ft
@@ -90,43 +90,38 @@ class TableModel(QAbstractTableModel):
 
         return None
 
+    # def canFetchMore(self, parent: QModelIndex) -> bool:
+    #     return super().canFetchMore(parent)
+
     def readConfig(self):
         # Read the uncertainty_P from the INI config file
         self.uncertP = float(
-            str(
-                ft.iniReadSectionKey(
-                    path.join(appBaseDir, "appConfig.ini"),
-                    "app.uncertainties",
-                    "uncertainty_P",
-                )
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.uncertainties",
+                "uncertainty_P",
             )
         )
 
         # Read the uncertainty_Q from the INI config file
         self.uncertQ = float(
-            str(
-                ft.iniReadSectionKey(
-                    path.join(appBaseDir, "appConfig.ini"),
-                    "app.uncertainties",
-                    "uncertainty_Q",
-                )
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.uncertainties",
+                "uncertainty_Q",
             )
         )
 
         # Read the real_power_3ph from the INI config file
-        self.realPower3ph = str(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.pq_diagram",
-                "real_power_3ph",
-            )
+        self.realPower3ph = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.pq_diagram",
+            "real_power_3ph",
         )
 
         # Read the reactive_power_3ph from the INI config file
-        self.reactivePower3ph = str(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.pq_diagram",
-                "reactive_power_3ph",
-            )
+        self.reactivePower3ph = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.pq_diagram",
+            "reactive_power_3ph",
         )
