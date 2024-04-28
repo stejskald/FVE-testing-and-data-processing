@@ -1,5 +1,6 @@
-from PyQt6.QtCore import QAbstractTableModel, QModelIndex, Qt
-from PyQt6.QtGui import QColor, QIcon
+from PyQt6.QtCore import QAbstractTableModel, QModelIndex, Qt, QVariant
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication
 import os.path as path
 import dp_app.include.fileTools as ft
 from datetime import datetime
@@ -14,13 +15,16 @@ class TableModel(QAbstractTableModel):
     def __init__(self, data):
         super(TableModel, self).__init__()
         self._data = data
+        self.rowsLoaded = 0
+        # self.numberPopulated = pyqtSignal(int)
 
         self.readConfig()
 
-    def rowCount(self, index):  # , parent=QModelIndex()
-        return self._data.shape[0]  # numpy, pandas
+    def rowCount(self, parent=QModelIndex()):
+        # return self._data.shape[0]  # numpy, pandas
+        return 0 if parent.isValid() else self.rowsLoaded
 
-    def columnCount(self, index):  # , parent=QModelIndex()
+    def columnCount(self, parent=QModelIndex()):
         return self._data.shape[1]  # numpy, pandas
 
     # Extension with pandas
@@ -35,6 +39,14 @@ class TableModel(QAbstractTableModel):
                 return str(self._data.index[section])
 
     def data(self, index, role):
+        # -----------------------------------------------------------------------------------------
+        if not index.isValid():
+            return QVariant()
+
+        if index.row() >= self._data.shape[0] or index.row() < 0:
+            return QVariant()
+        # -----------------------------------------------------------------------------------------
+
         if role == Qt.ItemDataRole.DisplayRole:
             # The nested-list data structure
             # .row() indexes into the outer list,
@@ -70,7 +82,7 @@ class TableModel(QAbstractTableModel):
             return str(value)  # conversion to string needed for pandas
 
         elif role == Qt.ItemDataRole.BackgroundRole:
-            return QColor(Qt.GlobalColor.white)
+            return QApplication.palette().base()  # QColor(Qt.GlobalColor.white)
 
         elif role == Qt.ItemDataRole.TextAlignmentRole:
             return Qt.AlignmentFlag.AlignRight
@@ -82,16 +94,36 @@ class TableModel(QAbstractTableModel):
                     return QIcon(path.join(appBaseDir, "icons", "check.ico"))
                 return QIcon(path.join(appBaseDir, "icons", "exit.ico"))
 
-        # Tooltip message will be shown when hovering over a cell
-        elif role == Qt.ItemDataRole.ToolTipRole:
-            value = self._data.iloc[index.row(), index.column()]
-            # return "row: {}, col: {}".format(index.row() + 1, index.column() + 1)
-            return "cell data type: {}".format(type(value))
+        # # Tooltip message will be shown when hovering over a cell
+        # elif role == Qt.ItemDataRole.ToolTipRole:
+        #     value = self._data.iloc[index.row(), index.column()]
+        #     # return "row: {}, col: {}".format(index.row() + 1, index.column() + 1)
+        #     return "cell data type: {}".format(type(value))
 
-        return None
+        return QVariant()
 
-    # def canFetchMore(self, parent: QModelIndex) -> bool:
-    #     return super().canFetchMore(parent)
+    def canFetchMore(self, parent: QModelIndex) -> bool:
+        if parent.isValid():
+            return False
+        return self.rowsLoaded < self._data.shape[0]
+
+    def fetchMore(self, parent: QModelIndex) -> None:
+        if parent.isValid():
+            return
+
+        remainder = self._data.shape[0] - self.rowsLoaded
+        itemsToFetch = min(20, remainder)
+
+        if itemsToFetch <= 0:
+            return
+
+        self.beginInsertRows(parent, self.rowsLoaded, self.rowsLoaded + itemsToFetch - 1)
+
+        self.rowsLoaded += itemsToFetch
+
+        self.endInsertRows()
+
+        # self.numberPopulated.emit(itemsToFetch)  # is not working
 
     def readConfig(self):
         # Read the uncertainty_P from the INI config file
