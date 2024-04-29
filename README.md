@@ -1,3 +1,3 @@
 # FVE-testing-and-data-processing
 
-Python Application for data processing of FVE (photovoltaic power plant) testing
+Python application for analysing FVE (photovoltaic power plant) test data

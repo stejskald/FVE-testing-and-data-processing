@@ -26,7 +26,7 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>150</width>
+         <width>125</width>
          <height>24</height>
         </size>
        </property>
@@ -102,13 +102,6 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="15">
-      <widget class="QPushButton" name="btnGradient">
-       <property name="text">
-        <string>Gradient</string>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="6">
       <widget class="QLabel" name="labelSetpointErrVal">
        <property name="toolTip">
@@ -137,6 +130,7 @@
        <property name="font">
         <font>
          <pointsize>8</pointsize>
+         <italic>true</italic>
         </font>
        </property>
        <property name="text">
@@ -144,22 +138,6 @@
        </property>
        <property name="checked">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="14">
-      <widget class="QLabel" name="labelTest1Info">
-       <property name="minimumSize">
-        <size>
-         <width>150</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -210,13 +188,6 @@
        </property>
       </spacer>
      </item>
-     <item row="2" column="15">
-      <widget class="QPushButton" name="btnRiseTime">
-       <property name="text">
-        <string>Rise time (0%-&gt;100%)</string>
-       </property>
-      </widget>
-     </item>
      <item row="3" column="5">
       <widget class="QLabel" name="labelSetpointErr">
        <property name="sizePolicy">
@@ -244,29 +215,6 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="14">
-      <widget class="QLabel" name="labelTest3Info">
-       <property name="minimumSize">
-        <size>
-         <width>150</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="15">
-      <widget class="QPushButton" name="btnAutoRephase">
-       <property name="text">
-        <string>Automatic rephasing</string>
        </property>
       </widget>
      </item>
@@ -319,7 +267,7 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>150</width>
+         <width>125</width>
          <height>24</height>
         </size>
        </property>
@@ -328,22 +276,6 @@
          <width>100</width>
          <height>16777215</height>
         </size>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="14">
-      <widget class="QLabel" name="labelTest2Info">
-       <property name="minimumSize">
-        <size>
-         <width>150</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
@@ -373,7 +305,7 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>150</width>
+         <width>125</width>
          <height>24</height>
         </size>
        </property>
@@ -385,14 +317,83 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="15">
+     <item row="0" column="10">
+      <widget class="QPushButton" name="btnAutoRephase">
+       <property name="text">
+        <string>Automatic rephasing</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="9">
+      <widget class="QLabel" name="labelTest1Info">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="10">
+      <widget class="QPushButton" name="btnGradient">
+       <property name="text">
+        <string>Gradient</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="9">
+      <widget class="QLabel" name="labelTest2Info">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="10">
+      <widget class="QPushButton" name="btnRiseTime">
+       <property name="text">
+        <string>Rise time (0%-&gt;100%)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="9">
+      <widget class="QLabel" name="labelTest3Info">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="10">
       <widget class="QPushButton" name="btnProcessVarMaxVal">
        <property name="text">
         <string>Process variable max value</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="14">
+     <item row="3" column="9">
       <widget class="QLabel" name="labelTest4Info">
        <property name="minimumSize">
         <size>
@@ -441,12 +442,12 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>125</width>
+         <width>90</width>
          <height>16777215</height>
         </size>
        </property>
        <property name="suffix">
-        <string> (kW/kvar)</string>
+        <string> kW</string>
        </property>
        <property name="decimals">
         <number>3</number>
@@ -587,9 +588,6 @@
   <tabstop>checkBox</tabstop>
   <tabstop>dblSpinBoxSetpoint</tabstop>
   <tabstop>XYGraph</tabstop>
-  <tabstop>btnGradient</tabstop>
-  <tabstop>btnRiseTime</tabstop>
-  <tabstop>btnAutoRephase</tabstop>
  </tabstops>
  <resources/>
  <connections/>
