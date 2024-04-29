@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
+    <width>784</width>
     <height>800</height>
    </rect>
   </property>
@@ -16,50 +16,10 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayoutTop">
-     <item row="1" column="1">
-      <widget class="QComboBox" name="cBoxY1Data">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>125</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="6">
-      <widget class="QLabel" name="labelSystemDelayVal">
+     <item row="3" column="10">
+      <widget class="QPushButton" name="btnProcessVarMaxVal">
        <property name="text">
-        <string>?</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="labelXdata">
-       <property name="font">
-        <font>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>bottom axis</string>
-       </property>
-       <property name="text">
-        <string>Data on X axis:</string>
+        <string>Process variable max value</string>
        </property>
       </widget>
      </item>
@@ -87,6 +47,89 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="9">
+      <widget class="QLabel" name="labelTest2Info">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="3">
+      <spacer name="hSpacerMid1">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelY2Data">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>right axis</string>
+       </property>
+       <property name="text">
+        <string>Data on Y2 axis:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QComboBox" name="cBoxXData">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>125</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="10">
+      <widget class="QPushButton" name="btnAutoRephase">
+       <property name="text">
+        <string>Automatic rephasing</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="6">
+      <widget class="QLabel" name="labelSystemDelayVal">
+       <property name="text">
+        <string>?</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="0">
       <widget class="QLabel" name="labelY1Data">
        <property name="font">
@@ -102,6 +145,73 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="1">
+      <widget class="QComboBox" name="cBoxY1Data">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>125</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelXdata">
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>bottom axis</string>
+       </property>
+       <property name="text">
+        <string>Data on X axis:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="8">
+      <spacer name="hSpacerRight">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Minimum</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="2" column="10">
+      <widget class="QPushButton" name="btnRiseTime">
+       <property name="text">
+        <string>Rise time (0%-&gt;100%)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="10">
+      <widget class="QPushButton" name="btnGradient">
+       <property name="text">
+        <string>Gradient</string>
+       </property>
+      </widget>
+     </item>
      <item row="3" column="6">
       <widget class="QLabel" name="labelSetpointErrVal">
        <property name="toolTip">
@@ -109,6 +219,60 @@
        </property>
        <property name="text">
         <string>?</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="5">
+      <widget class="QLabel" name="labelSetpointErr">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>24</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;A realtive error to the setpoint value.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="text">
+        <string>Setpoint error:</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="5">
+      <widget class="QLabel" name="labelSystemDelay">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="font">
+        <font>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="toolTip">
+        <string>The system delay represents the time that elapses between the execution of the control command and the response of the controlled system.</string>
+       </property>
+       <property name="text">
+        <string>System delay:</string>
        </property>
        <property name="alignment">
         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -151,45 +315,8 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="5">
-      <widget class="QLabel" name="labelSystemDelay">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>The system delay represents the time that elapses between the execution of the control command and the response of the controlled system.</string>
-       </property>
-       <property name="text">
-        <string>System delay:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="3">
-      <spacer name="hSpacerMid1">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="3" column="5">
-      <widget class="QLabel" name="labelSetpointErr">
+     <item row="2" column="1">
+      <widget class="QComboBox" name="cBoxY2Data">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
          <horstretch>0</horstretch>
@@ -198,23 +325,15 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>0</width>
+         <width>125</width>
          <height>24</height>
         </size>
        </property>
-       <property name="font">
-        <font>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>An error from the setpoint value. The power type (P/Q) is determined by the data on the Y1 axis.</string>
-       </property>
-       <property name="text">
-        <string>Setpoint error:</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+       <property name="maximumSize">
+        <size>
+         <width>100</width>
+         <height>16777215</height>
+        </size>
        </property>
       </widget>
      </item>
@@ -242,90 +361,8 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="labelY2Data">
-       <property name="font">
-        <font>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>right axis</string>
-       </property>
-       <property name="text">
-        <string>Data on Y2 axis:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="1">
-      <widget class="QComboBox" name="cBoxXData">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>125</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="8">
-      <spacer name="hSpacerRight">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Minimum</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="2" column="1">
-      <widget class="QComboBox" name="cBoxY2Data">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>125</width>
-         <height>24</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>100</width>
-         <height>16777215</height>
-        </size>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="10">
-      <widget class="QPushButton" name="btnAutoRephase">
-       <property name="text">
-        <string>Automatic rephasing</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="9">
-      <widget class="QLabel" name="labelTest1Info">
+     <item row="3" column="9">
+      <widget class="QLabel" name="labelTest4Info">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -337,36 +374,6 @@
        </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="10">
-      <widget class="QPushButton" name="btnGradient">
-       <property name="text">
-        <string>Gradient</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="9">
-      <widget class="QLabel" name="labelTest2Info">
-       <property name="minimumSize">
-        <size>
-         <width>150</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="10">
-      <widget class="QPushButton" name="btnRiseTime">
-       <property name="text">
-        <string>Rise time (0%-&gt;100%)</string>
        </property>
       </widget>
      </item>
@@ -386,15 +393,8 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="10">
-      <widget class="QPushButton" name="btnProcessVarMaxVal">
-       <property name="text">
-        <string>Process variable max value</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="9">
-      <widget class="QLabel" name="labelTest4Info">
+     <item row="0" column="9">
+      <widget class="QLabel" name="labelTest1Info">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -414,7 +414,7 @@
    <item>
     <layout class="QGridLayout" name="gridLayoutMid">
      <item row="0" column="2">
-      <spacer name="hSpacerMid2">
+      <spacer name="hSpacerRight2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -425,40 +425,6 @@
         </size>
        </property>
       </spacer>
-     </item>
-     <item row="0" column="1">
-      <widget class="QDoubleSpinBox" name="dblSpinBoxSetpoint">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>0</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>90</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="suffix">
-        <string> kW</string>
-       </property>
-       <property name="decimals">
-        <number>3</number>
-       </property>
-       <property name="maximum">
-        <double>1000000.000000000000000</double>
-       </property>
-       <property name="value">
-        <double>1200.000000000000000</double>
-       </property>
-      </widget>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="labelSetpoint">
@@ -484,28 +450,52 @@
        </property>
       </widget>
      </item>
+     <item row="0" column="1">
+      <widget class="QDoubleSpinBox" name="dblSpinBoxSetpoint">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>125</width>
+         <height>16777215</height>
+        </size>
+       </property>
+       <property name="suffix">
+        <string> (kW/kvar)</string>
+       </property>
+       <property name="decimals">
+        <number>3</number>
+       </property>
+       <property name="maximum">
+        <double>1000000.000000000000000</double>
+       </property>
+       <property name="value">
+        <double>1200.000000000000000</double>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
-    <spacer name="vSpacerMid">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeType">
-      <enum>QSizePolicy::Fixed</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="0" column="0">
       <widget class="QLabel" name="labelMeasDate">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <property name="font">
         <font>
          <bold>true</bold>
@@ -516,8 +506,20 @@
        </property>
       </widget>
      </item>
-     <item>
+     <item row="0" column="1">
       <widget class="QLabel" name="labelMeasDateValue">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>60</width>
+         <height>0</height>
+        </size>
+       </property>
        <property name="font">
         <font>
          <bold>false</bold>
@@ -528,15 +530,15 @@
        </property>
       </widget>
      </item>
-     <item>
-      <spacer name="hSpacerRight2">
+     <item row="0" column="2">
+      <spacer name="hSpacerRight3">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
-         <height>20</height>
+         <width>37</width>
+         <height>18</height>
         </size>
        </property>
       </spacer>
@@ -554,23 +556,10 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>500</height>
+       <height>16777215</height>
       </size>
      </property>
     </widget>
-   </item>
-   <item>
-    <spacer name="vSpacerBot">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
    </item>
   </layout>
  </widget>

@@ -12,7 +12,8 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_PQDiagramTab(object):
     def setupUi(self, PQDiagramTab):
         PQDiagramTab.setObjectName("PQDiagramTab")
-        PQDiagramTab.resize(800, 600)
+        PQDiagramTab.resize(800, 799)
+        PQDiagramTab.setMinimumSize(QtCore.QSize(60, 0))
         self.verticalLayout = QtWidgets.QVBoxLayout(PQDiagramTab)
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayout = QtWidgets.QGridLayout()
@@ -80,6 +81,7 @@ class Ui_PQDiagramTab(object):
         self.labelMeasDate.setObjectName("labelMeasDate")
         self.horizontalLayout_3.addWidget(self.labelMeasDate)
         self.labelMeasDateValue = QtWidgets.QLabel(parent=PQDiagramTab)
+        self.labelMeasDateValue.setMinimumSize(QtCore.QSize(60, 0))
         font = QtGui.QFont()
         font.setBold(False)
         self.labelMeasDateValue.setFont(font)
@@ -91,11 +93,9 @@ class Ui_PQDiagramTab(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         self.PQGraph = PlotWidget(parent=PQDiagramTab)
         self.PQGraph.setMinimumSize(QtCore.QSize(0, 400))
-        self.PQGraph.setMaximumSize(QtCore.QSize(16777215, 500))
+        self.PQGraph.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.PQGraph.setObjectName("PQGraph")
         self.verticalLayout.addWidget(self.PQGraph)
-        spacerItem3 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Policy.Minimum, QtWidgets.QSizePolicy.Policy.Expanding)
-        self.verticalLayout.addItem(spacerItem3)
 
         self.retranslateUi(PQDiagramTab)
         QtCore.QMetaObject.connectSlotsByName(PQDiagramTab)

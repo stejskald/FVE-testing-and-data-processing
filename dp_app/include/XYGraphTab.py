@@ -6,7 +6,9 @@ from PyQt6.QtWidgets import QWidget
 import pyqtgraph as pg
 import dp_app.include.fileTools as ft
 import pandas as pd
+import numpy as np
 from os import path
+from math import floor
 
 appBaseDir = path.abspath(path.join(__file__, "../.."))
 
@@ -93,6 +95,15 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
                 path.join(appBaseDir, "appConfig.ini"),
                 "app.xy_graph",
                 "setpoint",
+            )
+        )
+
+        # Read the mean_interval_length from the INI config file
+        self.meanIntervalLength = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.xy_graph",
+                "mean_interval_length",
             )
         )
 
@@ -233,7 +244,8 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
             self.crosshair_h.setPos(mousePoint.y())
 
     def onGraphClick(self, event):
-        # items = self.xyPlot.scene().items(event.scenePos())
+        # items = self.xyPlot.scene().items(event.scenePos())  # type: ignore
+        # print(items)  # All clicked items
         mousePoint = self.viewBoxY1.mapSceneToView(event._scenePos)  # type: ignore
         # print(mousePoint.x(), mousePoint.y())
         if self.xyPlot.sceneBoundingRect().contains(event._scenePos):  # type: ignore
@@ -259,8 +271,9 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
 
                         # Process Data
                         self.labelSystemDelayVal.setText(f"{self.getSystemDelay(self.clickDataX):.3f} s")
+                        unit = "kvar" if self.cBoxY1Data.currentText().find("kvar") != -1 else "kW"
                         self.labelGradientVal.setText(
-                            f"{self.getGradient(self.clickDataX, self.clickDataY):.3f} (kW/kvar)/s"
+                            f"{self.getGradient(self.clickDataX, self.clickDataY):.3f} {unit}/s"
                         )
                         self.labelRiseTimeVal.setText(
                             # TODO implement searching of 10% and 90% in Y values
@@ -285,8 +298,9 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
                         self.labelTest2Info.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
 
                         # Process Data
+                        unit = "kvar" if self.cBoxY1Data.currentText().find("kvar") != -1 else "kW"
                         self.labelGradientVal.setText(
-                            f"{self.getGradient(self.clickDataX, self.clickDataY):.3f} (kW/kvar)/s"
+                            f"{self.getGradient(self.clickDataX, self.clickDataY):.3f} {unit}/s"
                         )
 
                         # Clean arrays
@@ -373,14 +387,16 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         closestVal = min(columnValues, key=lambda x: abs(x - clickDataY))
         idx = columnValues.index(closestVal)
 
-        # Create small interval around the found index and get max value (it handles click inaccuracy)
-        indexes = range(idx - 10, idx + 10 + 1)
+        # Create small interval around the found index and get mean value (it handles click inaccuracy)
+        indexes = range(idx - floor(self.meanIntervalLength / 2), idx + floor(self.meanIntervalLength / 2) + 1)
         colSmallInterval = [columnValues[x] for x in indexes]
-        self.processVarMaxVal = max(colSmallInterval)
+        self.processVarMaxVal = np.mean(colSmallInterval)  # ...I would prefer max() func
 
     def updateSetpointError(self):
+        unit = "kvar" if self.cBoxY1Data.currentText().find("kvar") != -1 else "kW"
+        self.dblSpinBoxSetpoint.setSuffix(" " + unit)
         self.setpoint = self.dblSpinBoxSetpoint.value()
-        self.labelSetpointErrVal.setText(f"{self.setpoint - self.processVarMaxVal:.3f} (kW/kvar)")
+        self.labelSetpointErrVal.setText(f"{100*(self.processVarMaxVal - self.setpoint)/self.setpoint:.3f} %")
 
     # # TODO: Finish saving the data
     def saveMeasuredData(self):

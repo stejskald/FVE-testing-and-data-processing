@@ -293,7 +293,7 @@ class MainWindow(QMainWindow):
         self.processNotepad = None
         self.mainStatusBar.showMessage("The configuration file has been closed.")
 
-    # @pyqtSlot() <- TypeError: missing 1 required positional argument: 'visibility'
+    @pyqtSlot(bool)
     def setToolbarVisibility(self, visibility):
         if visibility:
             self.addToolBar(self.mainToolbar)
@@ -301,7 +301,7 @@ class MainWindow(QMainWindow):
         else:
             self.removeToolBar(self.mainToolbar)
 
-    # @pyqtSlot() <- TypeError: missing 1 required positional argument: 'visibility'
+    @pyqtSlot(bool)
     def checkToolbarVisibility(self, visibility):
         if not visibility:
             self.btnShowToolbar.setChecked(False)
