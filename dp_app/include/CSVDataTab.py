@@ -8,7 +8,7 @@ class CSVDataTab(QWidget, Ui_CSVDataTab):
         super(CSVDataTab, self).__init__()
         self.setupUi(self)
 
-    # TODO Take a look at QTreeView and optimization uniformRowHeights
+    # REVIEW Take a look at the QTreeView and an optimization uniformRowHeights for handling the huge data amounts
     def setTableDataModel(self, data):
         # Getting the Model
         self.tableModel = TableModel(data)

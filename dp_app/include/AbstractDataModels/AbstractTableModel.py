@@ -11,18 +11,26 @@ from math import ceil
 appBaseDir = path.abspath(path.join(__file__, "../../.."))
 
 
+# Enable fetching data sequentially to the table view
+FETCH_DATA_SEQUENTIALLY = True  # True
+
+
 class TableModel(QAbstractTableModel):
     def __init__(self, data):
         super(TableModel, self).__init__()
         self._data = data
-        self.rowsLoaded = 0
-        # self.numberPopulated = pyqtSignal(int)
+
+        if FETCH_DATA_SEQUENTIALLY:
+            self.rowsLoaded = 0
+            # self.numberPopulated = pyqtSignal(int)
 
         self.readConfig()
 
     def rowCount(self, parent=QModelIndex()):
-        # return self._data.shape[0]  # numpy, pandas
-        return 0 if parent.isValid() else self.rowsLoaded
+        if FETCH_DATA_SEQUENTIALLY:
+            return 0 if parent.isValid() else self.rowsLoaded
+        else:
+            return self._data.shape[0]  # numpy, pandas
 
     def columnCount(self, parent=QModelIndex()):
         return self._data.shape[1]  # numpy, pandas
@@ -39,13 +47,11 @@ class TableModel(QAbstractTableModel):
                 return str(self._data.index[section])
 
     def data(self, index, role):
-        # -----------------------------------------------------------------------------------------
         if not index.isValid():
             return QVariant()
 
         if index.row() >= self._data.shape[0] or index.row() < 0:
             return QVariant()
-        # -----------------------------------------------------------------------------------------
 
         if role == Qt.ItemDataRole.DisplayRole:
             # The nested-list data structure
@@ -102,28 +108,30 @@ class TableModel(QAbstractTableModel):
 
         return QVariant()
 
-    def canFetchMore(self, parent: QModelIndex) -> bool:
-        if parent.isValid():
-            return False
-        return self.rowsLoaded < self._data.shape[0]
+    if FETCH_DATA_SEQUENTIALLY:
 
-    def fetchMore(self, parent: QModelIndex) -> None:
-        if parent.isValid():
-            return
+        def canFetchMore(self, parent: QModelIndex) -> bool:
+            if parent.isValid():
+                return False
+            return self.rowsLoaded < self._data.shape[0]
 
-        remainder = self._data.shape[0] - self.rowsLoaded
-        itemsToFetch = min(20, remainder)
+        def fetchMore(self, parent: QModelIndex) -> None:
+            if parent.isValid():
+                return
 
-        if itemsToFetch <= 0:
-            return
+            remainder = self._data.shape[0] - self.rowsLoaded
+            itemsToFetch = min(20, remainder)
 
-        self.beginInsertRows(parent, self.rowsLoaded, self.rowsLoaded + itemsToFetch - 1)
+            if itemsToFetch <= 0:
+                return
 
-        self.rowsLoaded += itemsToFetch
+            self.beginInsertRows(parent, self.rowsLoaded, self.rowsLoaded + itemsToFetch - 1)
 
-        self.endInsertRows()
+            self.rowsLoaded += itemsToFetch
 
-        # self.numberPopulated.emit(itemsToFetch)  # is not working
+            self.endInsertRows()
+
+            # self.numberPopulated.emit(itemsToFetch)  # is not working
 
     def readConfig(self):
         # Read the uncertainty_P from the INI config file

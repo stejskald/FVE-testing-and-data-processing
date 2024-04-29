@@ -1,10 +1,10 @@
 from include.ControlPanelTab import ControlPanelTab
 from include.CSVDataTab import CSVDataTab
-from include.PQDiagramTab import PQDiagramTab
 from include.XYGraphTab import XYGraphTab
-from PyQt6.QtCore import QSize, pyqtSlot, QProcess
+from include.PQDiagramTab import PQDiagramTab
+from PyQt6.QtCore import QSize, pyqtSlot, QProcess, Qt
 from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
-from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox  # , QProgressBar
+from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox
 import dp_app.include.fileTools as ft
 from os import path
 from datetime import datetime
@@ -19,7 +19,7 @@ appBaseDir = path.abspath(path.join(__file__, "../.."))
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):  # , data, columns):
+    def __init__(self):
         super(MainWindow, self).__init__()
         # Read settings from configuration file
         self.readConfig()
@@ -36,11 +36,11 @@ class MainWindow(QMainWindow):
         # Initialize the Menu Bar
         self.mWinMenuInit()
 
-        # Initialize the Toolbar
-        self.mWinToolbarInit()
-
         # Initialize the Tabs
         self.mWinTabsInit()
+
+        # Initialize the Toolbar
+        self.mWinToolbarInit()
 
         # Initialize the Status Bar
         self.mWinStatusBarInit()
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         self.mWinOpenFileDialogInit()
 
         # Initialize the Progress Bar
-        # self.mWinProgressBarInit() #TODO Finish
+        # self.mWinProgressBarInit() #REVIEW Finish the Progress Bar if needed
 
         self.processNotepad = None
 
@@ -109,15 +109,15 @@ class MainWindow(QMainWindow):
 
         # Menu Bar - File Menu
         self.fileMenu = self.mainMenuBar.addMenu("&File")  # type: ignore
-        btnOpenConfigFile = QAction(
+        self.btnOpenConfigFile = QAction(
             QIcon(path.join(appBaseDir, "icons", "settings.ico")),
             "Open App &Config File",
             self,
         )
-        btnOpenConfigFile.setShortcut(QKeySequence("Ctrl+I"))
-        btnOpenConfigFile.setStatusTip("Push to open the application configuration file.")
-        btnOpenConfigFile.triggered.connect(self.openNotepad)  # type: ignore
-        self.fileMenu.addAction(btnOpenConfigFile)  # type: ignore
+        self.btnOpenConfigFile.setShortcut(QKeySequence("Ctrl+I"))
+        self.btnOpenConfigFile.setStatusTip("Push to open the application configuration file.")
+        self.btnOpenConfigFile.triggered.connect(self.openNotepad)  # type: ignore
+        self.fileMenu.addAction(self.btnOpenConfigFile)  # type: ignore
 
         # Menu Bar - File Menu - Exit QAction
         btnExitApp = QAction(
@@ -197,16 +197,12 @@ class MainWindow(QMainWindow):
 
         self.mainToolbar.visibilityChanged.connect(self.checkToolbarVisibility)
 
-        btnBugAction = QAction(
-            QIcon(path.join(appBaseDir, "icons", "bug.ico")),
-            "&Bug simulation",
-            self,
-        )
-        btnBugAction.setStatusTip("Simulate a Bug.")
-        btnBugAction.setCheckable(True)
-        self.mainToolbar.addAction(btnBugAction)
-        btnBugAction.setShortcut(QKeySequence("Ctrl+B"))
+        self.mainToolbar.addAction(self.btnOpenConfigFile)
+        self.mainToolbar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.mainToolbar.addSeparator()
+        self.mainToolbar.addAction(self.btnImportCSV)
+        self.mainToolbar.addSeparator()
+        self.mainToolbar.addAction(self.btnGenerateFinalReport)
 
     def mWinTabsInit(self):
         self.tabs = QTabWidget(self)
@@ -277,7 +273,7 @@ class MainWindow(QMainWindow):
         self.shortcutPrint = QShortcut(QKeySequence("Ctrl+R"), self)
         self.shortcutPrint.activated.connect(self.printReport)
 
-    # TODO Finish
+    # REVIEW Finish the Progress Bar if needed
     # def mWinProgressBarInit(self):
     #     self.progressBar = QProgressBar(self)
     #     self.progressBar.setGeometry(180, 200, 250, 20)
@@ -355,7 +351,7 @@ class MainWindow(QMainWindow):
                 if header not in self.csvAllHeaders:
                     incorrectHeaders.append(header)
             if not incorrectHeaders:  # List is empty
-                # An informative message shown #REVIEW Uncomment to show a MessageBox
+                # An informative message shown # REVIEW Uncomment to show a MessageBox
                 # QMessageBox.information(
                 #     self,
                 #     "Informative - CSV loading time",
@@ -375,7 +371,7 @@ class MainWindow(QMainWindow):
                 # Read data from CSV file
                 self.csvData = ft.readCSVdata(self.csvFilePath, self.csvDataSeparator, self.csvHeaders)
 
-                # TODO Progress bar -----------------------------
+                # REVIEW Progress bar -----------------------------
                 # from tqdm import tqdm
 
                 # LINES_TO_READ_FOR_EST = 20
@@ -445,23 +441,39 @@ class MainWindow(QMainWindow):
 
         # Check if the time starts at the whole second
         runCount = int(1 / self.csv_dt)  # run count per each second (5 times if dt is 0.2 sec)
-        ptimeSecs = []
+        pt2Secs = []
         for dateTimeStr in timeValues[:runCount]:
             pt = datetime.strptime(dateTimeStr, self.csvDateTimeFmt)  # parsed datetime
-            ptimeSecs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
-        # Detect differences in the time (list ptimeSecs)
-        timeDiffs = list(np.array(ptimeSecs[:-1]) - np.array(ptimeSecs[1:]))
+            pt2Secs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
+        # Detect differences in the time (list pt2Secs)
+        timeDiffs = list(np.array(pt2Secs[:-1]) - np.array(pt2Secs[1:]))
 
         # Adding .00 .20 .40 .60 .80 (mSec) and timezone (UTC+2) to the time data
         timeColIdx = self.csvData.columns.get_loc(self.timeColName)
-        runIter = runCount - (timeDiffs.index(-1) + 1)
+        runIter = runCount - (timeDiffs.index(-1) + 1)  # Initial multiplier (for time not starting at the whole second)
+        # prevIdx = 0
         for idx, row in self.csvData.iterrows():  # Iterate over rows
+            # prevIdx = idx
             self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx] = (
                 row[self.timeColName] + f"{runIter*self.csv_dt:.3f}"[1:] + " +0200"
             )
             runIter += 1
             if runIter == runCount:
                 runIter = 0
+
+                # TODO Add checking if there are more rows for a second than "runCount"
+                # dtStrActRow = self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx]
+                # ptActRow = datetime.strptime(dtStrActRow, "%Y-%m-%d %H:%M:%S.%f %z")  # parsed datetime
+                # pt2SecsActRow = ptActRow.second
+                # dtStrPrevRow = self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx]
+                # ptPrevRow = datetime.strptime(dtStrPrevRow, self.csvDateTimeFmt)  # parsed datetime
+                # pt2SecsPrevRow = ptPrevRow.second
+
+                # # Here check if the second val of the following row is same -> then remove the following row!
+                # if pt2SecsPrevRow == pt2SecsActRow:
+                #     print(ptPrevRow)
+                #     print(dtStrActRow)
+                #     # self.csvData.drop(row)
 
         # Convert Pandas column of datetime strings to DateTimes
         self.csvData[self.timeColName] = pd.to_datetime(

@@ -79,6 +79,7 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.btnAutoRephase.clicked.connect(self.processTest)
         self.btnGradient.clicked.connect(self.processTest)
         self.btnRiseTime.clicked.connect(self.processTest)
+        self.btnProcessVarMaxVal.clicked.connect(self.processTest)
         self.testActivated = False
         self.clickCount = 0
         self.clickDataX = []
@@ -248,13 +249,13 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
                 self.clickCount += 1
                 if self.mySender is self.btnAutoRephase:
                     if self.clickCount < 3:
-                        self.labelClickInfo1.setText(
+                        self.labelTest1Info.setText(
                             f"{self.mySender.text()}: {3-self.clickCount} clicks to graph remaining..."  # type: ignore
                         )
                     else:
                         self.clickCount = 0
                         self.testActivated = False
-                        self.labelClickInfo1.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
+                        self.labelTest1Info.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
 
                         # Process Data
                         self.labelSystemDelayVal.setText(f"{self.getSystemDelay(self.clickDataX):.3f} s")
@@ -263,7 +264,7 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
                         )
                         self.labelRiseTimeVal.setText(
                             # TODO implement searching of 10% and 90% in Y values
-                            f"{0.8 * self.getRiseTime(self.clickDataX, self.clickDataY):.3f} s"
+                            f"{self.getRiseTime(self.clickDataX, self.clickDataY):.3f} s"
                         )
 
                         self.findProcessVarMaxVal(self.clickDataY[2])
@@ -275,13 +276,13 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
 
                 elif self.mySender is self.btnGradient:
                     if self.clickCount < 2:
-                        self.labelClickInfo2.setText(
+                        self.labelTest2Info.setText(
                             f"{self.mySender.text()}: {2-self.clickCount} clicks to graph remaining..."  # type: ignore
                         )
                     else:
                         self.clickCount = 0
                         self.testActivated = False
-                        self.labelClickInfo2.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
+                        self.labelTest2Info.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
 
                         # Process Data
                         self.labelGradientVal.setText(
@@ -294,16 +295,34 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
 
                 elif self.mySender is self.btnRiseTime:
                     if self.clickCount < 2:
-                        self.labelClickInfo3.setText(
+                        self.labelTest3Info.setText(
                             f"{self.mySender.text()}: {2-self.clickCount} clicks to graph remaining..."  # type: ignore
                         )
                     else:
                         self.clickCount = 0
                         self.testActivated = False
-                        self.labelClickInfo3.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
+                        self.labelTest3Info.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
 
                         # Process Data
                         self.labelRiseTimeVal.setText(f"{self.getRiseTime(self.clickDataX, self.clickDataY):.3f} s")
+
+                        # Clean arrays
+                        self.clickDataX = []
+                        self.clickDataY = []
+
+                elif self.mySender is self.btnProcessVarMaxVal:
+                    if self.clickCount < 1:
+                        self.labelTest4Info.setText(
+                            f"{self.mySender.text()}: {1-self.clickCount} clicks to graph remaining..."  # type: ignore
+                        )
+                    else:
+                        self.clickCount = 0
+                        self.testActivated = False
+                        self.labelTest4Info.setText(f"{self.mySender.text()}: Test completed")  # type: ignore
+
+                        # Process Data
+                        self.findProcessVarMaxVal(self.clickDataY[0])
+                        self.updateSetpointError()
 
                         # Clean arrays
                         self.clickDataX = []
@@ -316,13 +335,16 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
 
             self.mySender = self.sender()  # type: ignore
             if self.mySender is self.btnAutoRephase:
-                self.labelClickInfo1.setText(f"{self.mySender.text()}: 3 clicks to graph remaining...")  # type: ignore
+                self.labelTest1Info.setText(f"{self.mySender.text()}: 3 clicks to graph remaining...")  # type: ignore
 
             elif self.mySender is self.btnGradient:
-                self.labelClickInfo2.setText(f"{self.mySender.text()}: 2 clicks to graph remaining...")  # type: ignore
+                self.labelTest2Info.setText(f"{self.mySender.text()}: 2 clicks to graph remaining...")  # type: ignore
 
             elif self.mySender is self.btnRiseTime:
-                self.labelClickInfo3.setText(f"{self.mySender.text()}: 2 clicks to graph remaining...")  # type: ignore
+                self.labelTest3Info.setText(f"{self.mySender.text()}: 2 clicks to graph remaining...")  # type: ignore
+
+            elif self.mySender is self.btnProcessVarMaxVal:
+                self.labelTest4Info.setText(f"{self.mySender.text()}: 1 click to graph remaining...")  # type: ignore
 
     def changeLegendLabel(self, plot, plotItem, name):
         # Change the label of given PlotDataItem in the plot's legend
@@ -360,9 +382,17 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.setpoint = self.dblSpinBoxSetpoint.value()
         self.labelSetpointErrVal.setText(f"{self.setpoint - self.processVarMaxVal:.3f} (kW/kvar)")
 
-    # # TODO: finish
-    # def saveMeasuredData(self):
-    #     x = np.linspace(0, 1, 201)
-    #     y = np.random.random(201)
+    # # TODO: Finish saving the data
+    def saveMeasuredData(self):
+        # dataToSave = [
+        #     self.labelSystemDelayVal.text(),
+        #     self.labelGradientVal.text(),
+        #     self.labelRiseTimeVal.text(),
+        #     self.labelSetpointErrVal.text(),
+        # ]
 
-    #     np.savetxt("testData.dat", [x, y])
+        # x = np.linspace(0, 1, 201)
+        # y = np.random.random(201)
+
+        # np.savetxt("testData.dat", [x, y])
+        pass

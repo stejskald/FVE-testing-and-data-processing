@@ -15,7 +15,7 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QGridLayout" name="gridLayout">
+    <layout class="QGridLayout" name="gridLayoutTop">
      <item row="1" column="1">
       <widget class="QComboBox" name="cBoxY1Data">
        <property name="sizePolicy">
@@ -88,7 +88,7 @@
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="labelYdata">
+      <widget class="QLabel" name="labelY1Data">
        <property name="font">
         <font>
          <bold>true</bold>
@@ -148,7 +148,7 @@
       </widget>
      </item>
      <item row="0" column="14">
-      <widget class="QLabel" name="labelClickInfo1">
+      <widget class="QLabel" name="labelTest1Info">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -213,7 +213,7 @@
      <item row="2" column="15">
       <widget class="QPushButton" name="btnRiseTime">
        <property name="text">
-        <string>Rise time (10%-&gt;90%)</string>
+        <string>Rise time (0%-&gt;100%)</string>
        </property>
       </widget>
      </item>
@@ -248,7 +248,7 @@
       </widget>
      </item>
      <item row="2" column="14">
-      <widget class="QLabel" name="labelClickInfo3">
+      <widget class="QLabel" name="labelTest3Info">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -284,7 +284,7 @@
         </font>
        </property>
        <property name="toolTip">
-        <string>The rise time indicates the time elapsed during the rise from 10 % to 90 % of the setpoint value.</string>
+        <string>The rise time indicates the time elapsed during the rise from 0 % to 100 % of the setpoint value.</string>
        </property>
        <property name="text">
         <string>Rise time:</string>
@@ -295,7 +295,7 @@
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="labelYdata_2">
+      <widget class="QLabel" name="labelY2Data">
        <property name="font">
         <font>
          <bold>true</bold>
@@ -332,7 +332,7 @@
       </widget>
      </item>
      <item row="1" column="14">
-      <widget class="QLabel" name="labelClickInfo2">
+      <widget class="QLabel" name="labelTest2Info">
        <property name="minimumSize">
         <size>
          <width>150</width>
@@ -386,16 +386,32 @@
       </widget>
      </item>
      <item row="3" column="15">
-      <widget class="QPushButton" name="btnRiseTime_2">
+      <widget class="QPushButton" name="btnProcessVarMaxVal">
        <property name="text">
         <string>Process variable max value</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="14">
+      <widget class="QLabel" name="labelTest4Info">
+       <property name="minimumSize">
+        <size>
+         <width>150</width>
+         <height>0</height>
+        </size>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
       </widget>
      </item>
     </layout>
    </item>
    <item>
-    <layout class="QGridLayout" name="gridLayout_2">
+    <layout class="QGridLayout" name="gridLayoutMid">
      <item row="0" column="2">
       <spacer name="hSpacerMid2">
        <property name="orientation">
@@ -444,7 +460,7 @@
       </widget>
      </item>
      <item row="0" column="0">
-      <widget class="QLabel" name="labelSetpointErr_2">
+      <widget class="QLabel" name="labelSetpoint">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
