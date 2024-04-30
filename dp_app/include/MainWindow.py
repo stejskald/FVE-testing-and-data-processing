@@ -436,44 +436,36 @@ class MainWindow(QMainWindow):
     def adjustDateTimeColumn(self):
         # Find name of the first column with "Time"
         self.timeColName = [col for col in self.csvData.columns if "Time" in col][0]
-        # Get str values in list
-        timeValues = self.csvData[self.timeColName].tolist()
 
-        # Check if the time starts at the whole second
+        # Find out at what fraction of a second the time data starts
         runCount = int(1 / self.csv_dt)  # run count per each second (5 times if dt is 0.2 sec)
-        pt2Secs = []
-        for dateTimeStr in timeValues[:runCount]:
-            pt = datetime.strptime(dateTimeStr, self.csvDateTimeFmt)  # parsed datetime
-            pt2Secs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
-        # Detect differences in the time (list pt2Secs)
-        timeDiffs = list(np.array(pt2Secs[:-1]) - np.array(pt2Secs[1:]))
+        timeDiffs = self.findSecFractionWhereTimeDataStart(runCount)
 
-        # Adding .00 .20 .40 .60 .80 (mSec) and timezone (UTC+2) to the time data
-        timeColIdx = self.csvData.columns.get_loc(self.timeColName)
-        runIter = runCount - (timeDiffs.index(-1) + 1)  # Initial multiplier (for time not starting at the whole second)
-        # prevIdx = 0
+        # Find Start index of the first whole second
+        runIter = runCount - (timeDiffs.index(-1) + 1)
+
+        timeColIdx = int(self.csvData.columns.get_loc(self.timeColName))  # type: ignore
+        # Initial multiplier (for time not starting at the whole second)
+        runIter = runCount - (timeDiffs.index(-1) + 1)
+        nextEqual = self.csvData[self.timeColName].eq(self.csvData[self.timeColName].shift(-1)).tolist()
+        deleteNextRow = False
         for idx, row in self.csvData.iterrows():  # Iterate over rows
-            # prevIdx = idx
+            if deleteNextRow:
+                self.csvData.drop(idx, inplace=True)
+                deleteNextRow = False
+                continue
+
+            # Check for an anomaly in csvData, when more than expected rows exist for any second -> delete row if True
+            if self.checkForAnomalyInCSVdata(runIter, runCount, idx, nextEqual):
+                deleteNextRow = True
+
+            # Adding .00 .20 .40 .60 .80 (mSec) and timezone (UTC+2) to the time data
             self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx] = (
                 row[self.timeColName] + f"{runIter*self.csv_dt:.3f}"[1:] + " +0200"
             )
             runIter += 1
             if runIter == runCount:
                 runIter = 0
-
-                # TODO Add checking if there are more rows for a second than "runCount"
-                # dtStrActRow = self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx]
-                # ptActRow = datetime.strptime(dtStrActRow, "%Y-%m-%d %H:%M:%S.%f %z")  # parsed datetime
-                # pt2SecsActRow = ptActRow.second
-                # dtStrPrevRow = self.csvData.iat[self.csvData.index.get_loc(idx), timeColIdx]
-                # ptPrevRow = datetime.strptime(dtStrPrevRow, self.csvDateTimeFmt)  # parsed datetime
-                # pt2SecsPrevRow = ptPrevRow.second
-
-                # # Here check if the second val of the following row is same -> then remove the following row!
-                # if pt2SecsPrevRow == pt2SecsActRow:
-                #     print(ptPrevRow)
-                #     print(dtStrActRow)
-                #     # self.csvData.drop(row)
 
         # Convert Pandas column of datetime strings to DateTimes
         self.csvData[self.timeColName] = pd.to_datetime(
@@ -482,6 +474,26 @@ class MainWindow(QMainWindow):
 
         # # Get date from the first element in the DateTime column as string
         self.measDate = str(self.csvData[self.timeColName].dt.date[0])
+
+    def findSecFractionWhereTimeDataStart(self, runCount: int) -> list:
+        runCount = int(1 / self.csv_dt)  # run count per each second (5 times if dt is 0.2 sec)
+        pt2Secs = []
+        for dateTimeStr in self.csvData[self.timeColName].tolist()[:runCount]:
+            pt = datetime.strptime(dateTimeStr, self.csvDateTimeFmt)  # parsed datetime to time in seconds
+            pt2Secs.append(pt.second + pt.minute * 60 + pt.hour * 3600)
+        # Detect differences in the time [s] (list pt2Secs)
+        return list(np.array(pt2Secs[:-1]) - np.array(pt2Secs[1:]))
+
+    def checkForAnomalyInCSVdata(self, runIter: int, runCount: int, rowIndex, nextEqual: list) -> bool:
+        if runIter + 1 == runCount:
+            actIdx = int(self.csvData.index.get_loc(rowIndex))  # type: ignore
+            # if actIdx > 1350 and actIdx < 1550:  # for debug purposes
+            # print(actIdx)
+            # print(nextEqual[actIdx])
+            if nextEqual[actIdx] is True:
+                del nextEqual[actIdx + 1]
+                return True  # delete next row
+        return False
 
     def adjust3CosPhiColumn(self):
         # Find and select only first column with "3Cos"

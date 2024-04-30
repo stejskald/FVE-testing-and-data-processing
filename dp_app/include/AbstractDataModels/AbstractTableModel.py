@@ -11,8 +11,14 @@ from math import ceil
 appBaseDir = path.abspath(path.join(__file__, "../../.."))
 
 
+# Read the fetch_data_sequentially from the INI config file
+fetchDataSeq = ft.iniReadSectionKey(
+    path.join(appBaseDir, "appConfig.ini"),
+    "app.csv_data",
+    "fetch_data_sequentially",
+)
 # Enable fetching data sequentially to the table view
-FETCH_DATA_SEQUENTIALLY = True  # True
+FETCH_DATA_SEQUENTIALLY = False if fetchDataSeq == "False" else True
 
 
 class TableModel(QAbstractTableModel):

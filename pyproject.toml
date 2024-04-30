@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "dp-app"
 version = "1.0.0"
-description = "The Python Desktop Application for data processing of FVE (photovoltaic power plant) testing"
+description = "The Python desktop application for analysing FVE (photovoltaic power plant) test data"
 authors = ["David Stejskal <david.stej@seznam.cz>"]
 readme = "README.md"
 repository = "https://github.com/stejskald/FVE-testing-and-data-processing"
 packages = [{ include = "dp_app" }]
-include = ["icons", "UIs"]
+include = ["AbstractDataModels", "UIs"]
 exclude = []
 
 [tool.poetry.dependencies]
