@@ -1,5 +1,5 @@
+# from dp_app.include.pgTimeAxis import DateAxisItem
 from include.UIs.XYGraphTab_ui import Ui_XYGraphTab
-from dp_app.include.pgTimeAxis import DateAxisItem
 from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
 from PyQt6.QtGui import QPalette
 from PyQt6.QtWidgets import QWidget
@@ -39,13 +39,8 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.y2LabelStyles = {"color": "#b2182b", "font": "Times", "font-size": "12pt"}
 
         # X-Axis (DateTime)
-        # Remove the old item to not get message from QGridLayoutEngine: Cell (3, 1) already taken
-        old_item = self.xyPlot.layout.itemAt(3, 1)  # type: ignore
-        self.xyPlot.layout.removeItem(old_item)  # type: ignore
-
-        # Add the Date-time axis
-        self.xAxis = DateAxisItem(orientation="bottom")
-        self.xAxis.attachToPlotItem(self.xyPlot)
+        self.xAxis = pg.DateAxisItem(orientation="bottom")
+        self.xyPlot.setAxisItems({"bottom": self.xAxis})  # type: ignore
         self.xyPlot.showGrid(x=True, y=True, alpha=0.5)  # type: ignore
 
         # Create a new ViewBox, link the right axis to its coordinate system
@@ -105,20 +100,6 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
                 "app.xy_graph",
                 "mean_interval_length",
             )
-        )
-
-        # Read the real_power_3ph from the INI config file
-        self.realPower3ph = ft.iniReadSectionKey(
-            path.join(appBaseDir, "appConfig.ini"),
-            "app.pq_diagram",
-            "real_power_3ph",
-        )
-
-        # Read the reactive_power_3ph from the INI config file
-        self.reactivePower3ph = ft.iniReadSectionKey(
-            path.join(appBaseDir, "appConfig.ini"),
-            "app.pq_diagram",
-            "reactive_power_3ph",
         )
 
     def loadData(self, dataFrame):

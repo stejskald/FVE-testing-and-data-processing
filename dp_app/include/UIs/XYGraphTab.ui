@@ -116,7 +116,7 @@
      <item row="0" column="10">
       <widget class="QPushButton" name="btnAutoRephase">
        <property name="text">
-        <string>Automatic rephasing</string>
+        <string>Automatic reconnection</string>
        </property>
       </widget>
      </item>

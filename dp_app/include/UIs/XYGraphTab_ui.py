@@ -261,7 +261,7 @@ class Ui_XYGraphTab(object):
         self.labelGradient.setText(_translate("XYGraphTab", "Gradient:"))
         self.labelY2Data.setToolTip(_translate("XYGraphTab", "right axis"))
         self.labelY2Data.setText(_translate("XYGraphTab", "Data on Y2 axis:"))
-        self.btnAutoRephase.setText(_translate("XYGraphTab", "Automatic rephasing"))
+        self.btnAutoRephase.setText(_translate("XYGraphTab", "Automatic reconnection"))
         self.labelSystemDelayVal.setText(_translate("XYGraphTab", "?"))
         self.labelY1Data.setToolTip(_translate("XYGraphTab", "left axis"))
         self.labelY1Data.setText(_translate("XYGraphTab", "Data on Y1 axis:"))
