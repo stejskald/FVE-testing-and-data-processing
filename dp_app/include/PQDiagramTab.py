@@ -79,6 +79,15 @@ class PQDiagramTab(QWidget, Ui_PQDiagramTab):
             "reactive_power_3ph",
         )
 
+        # Read the real_power_3ph_nominal from the INI config file
+        self.realPower3phNominal = float(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.pq_diagram",
+                "real_power_3ph_nominal",
+            )
+        )
+
     def loadData(self, dataFrame):
         self.df = dataFrame.copy()
 
@@ -88,6 +97,10 @@ class PQDiagramTab(QWidget, Ui_PQDiagramTab):
         # series to list
         self.dataX = self.df[self.reactivePower3ph].tolist()
         self.dataY = self.df[self.realPower3ph].tolist()
+
+        # Use the nominal power value to display the P/Q ratio
+        self.dataY = [(item / self.realPower3phNominal) for item in self.dataY]
+        self.dataX = [(item / self.realPower3phNominal) for item in self.dataX]
 
         # Check if the csvDataRef exists (if Import CSV is called multiple times)
         if hasattr(self, "csvDataRef"):
@@ -99,11 +112,11 @@ class PQDiagramTab(QWidget, Ui_PQDiagramTab):
 
         # Y-Axis
         yLabelStyles = {"color": "#4393c3", "font": "Times", "font-size": "12pt"}
-        self.pqPlot.setLabel("left", self.realPower3ph, **yLabelStyles)  # type: ignore
+        self.pqPlot.setLabel("left", f"{self.realPower3ph} / Pn", **yLabelStyles)  # type: ignore
 
         # X-Axis
         xLabelStyles = {"color": "#4393c3", "font": "Times", "font-size": "12pt"}
-        self.pqPlot.setLabel("bottom", self.reactivePower3ph, **xLabelStyles)  # type: ignore
+        self.pqPlot.setLabel("bottom", f"{self.reactivePower3ph} / Pn", **xLabelStyles)  # type: ignore
 
         # Calculate the slopes for the Cos Phi Fall & Rise lines
         self.calcInfLinesAngles()
