@@ -146,10 +146,10 @@
           </font>
          </property>
          <property name="toolTip">
-          <string>The rise time indicates the time elapsed during the rise from 0 % to 100 % of the setpoint value.</string>
+          <string>The reach time indicates the time elapsed during the rise from 0 % to 100 % of the setpoint value.</string>
          </property>
          <property name="text">
-          <string>Rise time:</string>
+          <string>Reach time:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -196,10 +196,10 @@
           </font>
          </property>
          <property name="toolTip">
-          <string>The system delay represents the time that elapses between the execution of the control command and the response of the controlled system.</string>
+          <string>The time delay represents the time that elapses between the execution of the control command and the response of the controlled system.</string>
          </property>
          <property name="text">
-          <string>System delay:</string>
+          <string>Time delay:</string>
          </property>
          <property name="alignment">
           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -308,6 +308,8 @@
   </customwidget>
  </customwidgets>
  <tabstops>
+  <tabstop>btnAutoReconnect</tabstop>
+  <tabstop>textTestInfo</tabstop>
   <tabstop>XYGraph</tabstop>
  </tabstops>
  <resources/>

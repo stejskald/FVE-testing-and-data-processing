@@ -1,15 +1,20 @@
 from include.ControlPanelTab import ControlPanelTab
 from include.CSVDataTab import CSVDataTab
 from include.XYGraphTab import XYGraphTab
+from include.AutoReconnectTab import AutoReconnectTab
+from include.GradientTab import GradientTab
+from include.TimeDelayTab import TimeDelayTab
+from include.SetpointErrorTab import SetpointErrorTab
 from include.PQDiagramTab import PQDiagramTab
 from PyQt6.QtCore import QSize, pyqtSlot, QProcess, Qt
-from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut
-from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox
+from PyQt6.QtGui import QAction, QIcon, QKeySequence, QShortcut, QKeyEvent
+from PyQt6.QtWidgets import QMainWindow, QStatusBar, QTabWidget, QToolBar, QFileDialog, QMessageBox, QApplication
 import dp_app.include.fileTools as ft
 from os import path
 from datetime import datetime
 import pandas as pd
 import numpy as np
+from math import isnan
 
 # relative pathing to handle situation when starting the app from different locations
 includeDir = path.dirname(__file__)
@@ -29,9 +34,11 @@ class MainWindow(QMainWindow):
 
         # Scale Main Window relatively to the Main Display size
         screenGeom = self.screen().availableGeometry()  # type: ignore
-        self.setFixedSize(int(screenGeom.width() * 0.8), int(screenGeom.height() * 0.8))
-        self.setMinimumSize(QSize(1200, 800))
-        # self.showMaximized() #Full screen
+        self.setFixedSize(int(screenGeom.width() * 0.8), int(screenGeom.height() * 0.85))
+        self.setMinimumSize(QSize(1200, 750))
+        # Set to the display center
+        self.move(int((screenGeom.width() - self.width()) / 2), int((screenGeom.height() - self.height()) / 2))
+        # self.showMaximized() # Show in Full screen
 
         # Initialize the Menu Bar
         self.mWinMenuInit()
@@ -139,7 +146,8 @@ class MainWindow(QMainWindow):
         self.btnShowToolbar.setStatusTip("Toggle to show/hide the Toolbar.")
         self.btnShowToolbar.triggered.connect(self.setToolbarVisibility)
         self.btnShowToolbar.setCheckable(True)
-        self.btnShowToolbar.setChecked(False)
+        # Toolbar visible as default
+        self.btnShowToolbar.setChecked(True)
         viewMenu.addAction(self.btnShowToolbar)  # type: ignore
 
         # Menu Bar - CSV Menu - Import CSV
@@ -170,6 +178,34 @@ class MainWindow(QMainWindow):
         self.btnShowCSVDataInGraph.triggered.connect(self.btnClicked)
         graphMenu.addAction(self.btnShowCSVDataInGraph)  # type: ignore
 
+        self.btnShowAutoReconnection = QAction(
+            "Show &Auto Reconnection",
+            self,
+        )
+        self.btnShowAutoReconnection.triggered.connect(self.btnClicked)
+        graphMenu.addAction(self.btnShowAutoReconnection)  # type: ignore
+
+        self.btnShowGradient = QAction(
+            "Show &Gradient",
+            self,
+        )
+        self.btnShowGradient.triggered.connect(self.btnClicked)
+        graphMenu.addAction(self.btnShowGradient)  # type: ignore
+
+        self.btnShowTimeDelay = QAction(
+            "Show &Time Delay",
+            self,
+        )
+        self.btnShowTimeDelay.triggered.connect(self.btnClicked)
+        graphMenu.addAction(self.btnShowTimeDelay)  # type: ignore
+
+        self.btnShowSetpointError = QAction(
+            "Show &Setpoint Error",
+            self,
+        )
+        self.btnShowSetpointError.triggered.connect(self.btnClicked)
+        graphMenu.addAction(self.btnShowSetpointError)  # type: ignore
+
         self.btnShowPQDiagram = QAction(
             QIcon(path.join(appBaseDir, "icons", "pq-diagram.ico")),
             "Show &PQ Diagram",
@@ -193,7 +229,7 @@ class MainWindow(QMainWindow):
         self.mainToolbar = QToolBar("Toolbar")
         self.mainToolbar.setIconSize(QSize(16, 16))
         self.addToolBar(self.mainToolbar)
-        self.mainToolbar.hide()  # Hide as default
+        # self.mainToolbar.hide()  # Hide as default
 
         self.mainToolbar.visibilityChanged.connect(self.checkToolbarVisibility)
 
@@ -227,6 +263,14 @@ class MainWindow(QMainWindow):
         self.controlTab.btnShowXYgraph.setIcon(QIcon(path.join(appBaseDir, "icons", "xy-graph.ico")))
         self.controlTab.btnShowXYgraph.setIconSize(QSize(30, 30))
 
+        self.controlTab.btnShowAutoReconnect.clicked.connect(self.btnClicked)
+
+        self.controlTab.btnShowGradient.clicked.connect(self.btnClicked)
+
+        self.controlTab.btnShowTimeDelay.clicked.connect(self.btnClicked)
+
+        self.controlTab.btnShowSetpointError.clicked.connect(self.btnClicked)
+
         self.controlTab.btnShowPQdiagram.clicked.connect(self.btnClicked)
         self.controlTab.btnShowPQdiagram.setIcon(QIcon(path.join(appBaseDir, "icons", "pq-diagram.ico")))
         self.controlTab.btnShowPQdiagram.setIconSize(QSize(30, 30))
@@ -245,6 +289,22 @@ class MainWindow(QMainWindow):
         self.xyGraphTabIdx = self.tabs.addTab(self.xyGraphTab, "XY Graph")
         self.tabs.setTabIcon(self.xyGraphTabIdx, QIcon(path.join(appBaseDir, "icons", "xy-graph.ico")))
 
+        # Tab - Auto Reconnection
+        self.autoReconnectTab = AutoReconnectTab()
+        self.autoReconnectTabIdx = self.tabs.addTab(self.autoReconnectTab, "Automatic Reconnection")
+
+        # Tab - Gradient
+        self.gradientTab = GradientTab()
+        self.gradientTabIdx = self.tabs.addTab(self.gradientTab, "Gradient")
+
+        # Tab - Time Delay
+        self.timeDelayTab = TimeDelayTab()
+        self.timeDelayTabIdx = self.tabs.addTab(self.timeDelayTab, "Time Delay")
+
+        # Tab - Setpoint Error
+        self.setpointErrorTab = SetpointErrorTab()
+        self.setpointErrorTabIdx = self.tabs.addTab(self.setpointErrorTab, "Setpoint Error")
+
         # Tab - PQ Diagram
         self.pqDiagramTab = PQDiagramTab()
         self.pqDiagramTabIdx = self.tabs.addTab(self.pqDiagramTab, "PQ Diagram")
@@ -253,7 +313,10 @@ class MainWindow(QMainWindow):
             QIcon(path.join(appBaseDir, "icons", "pq-diagram.ico")),
         )
 
-        self.tabs.setCurrentIndex(self.controlTabIdx)
+        # # Create list of added Tabs
+        # self.tabsAdded = [self.tabs.widget(i) for i in range(self.tabs.count())]
+
+        self.tabs.setCurrentIndex(self.controlTabIdx)  # self.controlTabIdx
 
     def mWinStatusBarInit(self):
         self.mainStatusBar = QStatusBar(self)
@@ -279,6 +342,33 @@ class MainWindow(QMainWindow):
     #     self.progressBar.setGeometry(180, 200, 250, 20)
     #     self.controlTab.btnImportCSV.clicked.connect(self.updateProgressBar)
     #     self.progressBar.hide()
+
+    # Define keyPressEvent for all Tabs of the Main Window
+    def keyPressEvent(self, event: QKeyEvent):
+        # If Ctrl+C pressed, copy selected region in current tableView (if exists)
+        if event.matches(QKeySequence.StandardKey.Copy):
+            try:
+                cells = self.tabs.widget(self.tabs.currentIndex()).tableView.selectedIndexes()  # type: ignore
+            except AttributeError:  # Current tab does not have tableView
+                return
+            # qSort(cells)  # Necessary, otherwise they are in column order <-- NOT NECESSARY?...
+
+            text = str()
+            currentRow = 0  # To determine when to insert newlines
+            for cell in cells:
+                if text.__len__() == 0:
+                    # First item
+                    pass
+                elif cell.row() != currentRow:
+                    # New row
+                    text += "\n"
+                else:
+                    # Next cell
+                    text += "\t"
+                currentRow = cell.row()
+                text += str(cell.data())
+
+            QApplication.clipboard().setText(text)  # type: ignore
 
     @pyqtSlot()
     def openNotepad(self):
@@ -310,7 +400,7 @@ class MainWindow(QMainWindow):
 
     @pyqtSlot()
     def printReport(self):
-        self.mainStatusBar.showMessage("Printing called...")
+        self.mainStatusBar.showMessage("Printing not implemented yet...")
 
     @pyqtSlot()
     def btnClicked(self):
@@ -326,6 +416,22 @@ class MainWindow(QMainWindow):
         elif sender == "Show &XY Graph":
             # Show XY-Graph tab
             self.tabs.setCurrentIndex(self.xyGraphTabIdx)
+
+        elif sender == "Show &Auto Reconnection":
+            # Show Auto Reconnection tab
+            self.tabs.setCurrentIndex(self.autoReconnectTabIdx)
+
+        elif sender == "Show &Gradient":
+            # Show Gradient tab
+            self.tabs.setCurrentIndex(self.gradientTabIdx)
+
+        elif sender == "Show &Time Delay":
+            # Show Time Delay tab
+            self.tabs.setCurrentIndex(self.timeDelayTabIdx)
+
+        elif sender == "Show &Setpoint Error":
+            # Show Setpoint Error tab
+            self.tabs.setCurrentIndex(self.setpointErrorTabIdx)
 
         elif sender == "Show &PQ Diagram":
             # Show PQ-Diagram tab
@@ -398,8 +504,8 @@ class MainWindow(QMainWindow):
                 # e.g.: "2023-08-31 11:15:24" -> "2023-08-31 11:15:24.200000 +0200"
                 self.adjustDateTimeColumn()
 
-                # Adjust the data in the 3Cosφ[] column "C -0.18" -> float(-0.18)
-                self.adjust3CosPhiColumn()
+                # Parse the data in the 3Cosφ[] column "C -0.18" -> float(-0.18)
+                self.parseCosPhiColumnData()
 
                 # Mean of 3 Ph2Ph Voltages columns
                 self.makeMeanOfPh2PhAvgVoltages()
@@ -410,16 +516,14 @@ class MainWindow(QMainWindow):
                 # Show info about CSV file was loaded
                 self.mainStatusBar.showMessage("The CSV file has been loaded.")
 
-                # Set the TableView Data Model and upload the loaded data
+                # Set the comboBoxes Data Models and upload the loaded data
                 self.xyGraphTab.setComboBoxesDataModel(self.csvData.columns.to_list())
 
-                # Load CSV data to the xyGraphTab ans set the date
-                self.xyGraphTab.loadData(self.csvData)
-                self.xyGraphTab.setMeasurementDate(self.measDate)
+                # Load CSV data to all the necessary Tabs
+                self.loadData2Tabs()
 
-                # Load CSV data to the pqDiagramTab ans set the date
-                self.pqDiagramTab.loadData(self.csvData)
-                self.pqDiagramTab.setMeasurementDate(self.measDate)
+                # Set the measurement date to all Tabs
+                self.setMeasDate2Tabs()
 
             else:
                 # A critical message shown
@@ -495,12 +599,31 @@ class MainWindow(QMainWindow):
                 return True  # delete next row
         return False
 
-    def adjust3CosPhiColumn(self):
+    def parseCosPhiColumnData(self):
         # Find and select only first column with "3Cos"
         cosPhiColName = [col for col in self.csvData.columns if "3Cos" in col][0]
         # Update values in cosPhiColName column with trimming the "C"/"L" part and converting to float64
-        self.csvData[cosPhiColName] = self.csvData[cosPhiColName].str.split(" ").str[1]
-        self.csvData[cosPhiColName] = pd.to_numeric(self.csvData[cosPhiColName], errors="coerce")
+
+        cosPhiList = self.csvData[cosPhiColName].tolist()
+        cosPhiTemp = [float() for _ in range(len(cosPhiList))]
+        for i, x in enumerate(cosPhiList):
+            if type(x) is float and isnan(x):
+                cosPhiTemp[i] = x
+            elif type(x) is str:
+                temp = x.split(" ")
+                if temp[0] == "C":
+                    # In case of inconsistent data (eg. "C -0.17" and "C 0.17")
+                    # if temp[1][0] != "-" and temp[1][0] != "1":
+                    #     cosPhiTemp[i] = pd.to_numeric("-" + temp[1], errors="coerce")
+                    # else:
+                    cosPhiTemp[i] = pd.to_numeric(temp[1], errors="coerce")
+                elif temp[0] == "L":
+                    cosPhiTemp[i] = pd.to_numeric(temp[1], errors="coerce")
+                else:
+                    # In case of inconsistent data (eg. "1" instead of "L 1.00")
+                    cosPhiTemp[i] = pd.to_numeric(temp[0], errors="coerce")
+
+        self.csvData[cosPhiColName] = cosPhiTemp
 
     def makeMeanOfPh2PhAvgVoltages(self):
         # Average for each row in Avg Voltage Ph2Ph columns
@@ -509,6 +632,22 @@ class MainWindow(QMainWindow):
         self.csvData = self.csvData.drop(self.avgVoltagesPh2Ph, axis=1)
         # Add a new column as the 1st
         self.csvData.insert(1, self.avgVoltPh2PhMean, AvgU_Ph2Ph, True)
+
+    def loadData2Tabs(self):
+        self.xyGraphTab.loadData(self.csvData)
+        self.autoReconnectTab.loadData(self.csvData)
+        self.gradientTab.loadData(self.csvData)
+        self.timeDelayTab.loadData(self.csvData)
+        self.setpointErrorTab.loadData(self.csvData)
+        self.pqDiagramTab.loadData(self.csvData)
+
+    def setMeasDate2Tabs(self):
+        self.xyGraphTab.setMeasurementDate(self.measDate)
+        self.autoReconnectTab.setMeasurementDate(self.measDate)
+        self.gradientTab.setMeasurementDate(self.measDate)
+        self.timeDelayTab.setMeasurementDate(self.measDate)
+        self.setpointErrorTab.setMeasurementDate(self.measDate)
+        self.pqDiagramTab.setMeasurementDate(self.measDate)
 
     # @pyqtSlot()
     # def updateProgressBar(self):

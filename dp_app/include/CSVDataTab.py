@@ -1,4 +1,4 @@
-from include.AbstractDataModels.AbstractTableModel import TableModel
+from dp_app.include.AbstractDataModels.csvTableModel import TableModel
 from dp_app.include.UIs.CSVDataTab_ui import Ui_CSVDataTab
 from PyQt6.QtWidgets import QHeaderView, QWidget
 

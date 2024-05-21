@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>517</width>
-    <height>386</height>
+    <width>573</width>
+    <height>423</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QTableView" name="tableView">
      <property name="sizePolicy">
@@ -25,6 +25,9 @@
      <property name="focusPolicy">
       <enum>Qt::NoFocus</enum>
      </property>
+     <attribute name="verticalHeaderDefaultSectionSize">
+      <number>24</number>
+     </attribute>
     </widget>
    </item>
   </layout>

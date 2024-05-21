@@ -1,4 +1,3 @@
-# from dp_app.include.pgTimeAxis import DateAxisItem
 from include.UIs.XYGraphTab_ui import Ui_XYGraphTab
 from PyQt6.QtCore import Qt, pyqtSlot, QStringListModel
 from PyQt6.QtGui import QPalette
@@ -51,15 +50,15 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.viewBoxY2.setXLink(self.xyPlot)
 
         # Add crosshair lines
-        crosshairPen = pg.mkPen(color="#648200", width=1, style=Qt.PenStyle.SolidLine)  # #c0ff00
-        self.crosshair_v = pg.InfiniteLine(angle=90, pen=crosshairPen)
-        self.crosshair_h = pg.InfiniteLine(angle=0, pen=crosshairPen)
-        self.XYGraph.addItem(self.crosshair_v, ignoreBounds=True)  # type: ignore
-        self.XYGraph.addItem(self.crosshair_h, ignoreBounds=True)  # type: ignore
+        crosshairPen = pg.mkPen(color="#648200", width=1, style=Qt.PenStyle.SolidLine)  # #C0FF00
+        self.vCrosshair = pg.InfiniteLine(angle=90, pen=crosshairPen)
+        self.hCrosshair = pg.InfiniteLine(angle=0, pen=crosshairPen)
+        self.XYGraph.addItem(self.vCrosshair, ignoreBounds=True)  # type: ignore
+        self.XYGraph.addItem(self.hCrosshair, ignoreBounds=True)  # type: ignore
 
-        # Setup a SignalProxy and connect it to a updateCrosshair method
-        # Whenever the mouse is moved over the plot, the updateCrosshair is called with an event as an argument
-        self.proxy = pg.SignalProxy(self.XYGraph.scene().sigMouseMoved, rateLimit=60, slot=self.updateCrosshair)
+        # Setup a SignalProxy and connect it to a mouseMoved method
+        # Whenever the mouse is moved over the plot, the mouseMoved is called with an event as an argument
+        self.proxy = pg.SignalProxy(self.XYGraph.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
 
         # Hide the cursor over the plot
         cursor = Qt.CursorShape.BlankCursor
@@ -70,7 +69,7 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
 
         self.checkBox.stateChanged.connect(self.secondViewEnabled)
 
-        self.dblSpinBoxSetpoint.setValue(self.setpoint)
+        self.dblSpinBoxSetpoint.setValue(self.pwrSetpoint)
         self.dblSpinBoxSetpoint.valueChanged.connect(self.updateSetpointError)
 
         self.btnAutoRephase.clicked.connect(self.processTest)
@@ -84,12 +83,12 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.processVarMaxVal = 0
 
     def readConfig(self):
-        # Read the setpoint from the INI config file
-        self.setpoint = float(
+        # Read the power_setpoint from the INI config file
+        self.pwrSetpoint = float(
             ft.iniReadSectionKey(
                 path.join(appBaseDir, "appConfig.ini"),
                 "app.xy_graph",
-                "setpoint",
+                "power_setpoint",
             )
         )
 
@@ -102,9 +101,21 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
             )
         )
 
+        # Read the moving_avg_window_size from the INI config file
+        self.movAvgWinSize = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.xy_graph",
+                "moving_avg_window_size",
+            )
+        )
+
     def loadData(self, dataFrame):
         # Get name of the first column with "Time"
         self.timeColName = [col for col in dataFrame.columns if "Time" in col][0]
+
+        # Get name of all digital signals columns (with "DOI")
+        self.digSigColNames = [col for col in dataFrame.columns if "DOI" in col]
 
         # Make a reference to the dataFrame and copy only the timeColName column (will be processed subsequently)
         self.df = dataFrame.loc[:, dataFrame.columns != self.timeColName]
@@ -112,10 +123,14 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
 
         self.processData()
 
-        # series to list
-        self.dataX = self.df[self.cBoxXData.currentText()].tolist()
-        self.dataY1 = self.df[self.cBoxY1Data.currentText()].tolist()
-        self.dataY2 = self.df[self.cBoxY2Data.currentText()].tolist()
+        # series to lists with averaging
+        sizeCorrection = 0
+        if self.movAvgWinSize % 2 != 0:
+            sizeCorrection = 1
+        halfWin = int(self.movAvgWinSize / 2)
+        self.dataX = self.df[self.cBoxXData.currentText()].tolist()[halfWin + sizeCorrection : -halfWin + 1]
+        self.dataY1 = self.movAvgConvolve(self.df[self.cBoxY1Data.currentText()].tolist(), self.movAvgWinSize)
+        self.dataY2 = self.movAvgConvolve(self.df[self.cBoxY2Data.currentText()].tolist(), self.movAvgWinSize)
 
         self.xyPlot.setTitle(  # type: ignore
             f"{self.cBoxY1Data.currentText()} & {self.cBoxY2Data.currentText()} vs {self.cBoxXData.currentText()}"
@@ -153,6 +168,10 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         # Convert datetime to timestamp
         self.df[self.timeColName] = self.df[self.timeColName].apply(pd.Timestamp.timestamp)
 
+    def movAvgConvolve(self, array, n=10):
+        weights = np.ones(n) / n
+        return np.convolve(array, weights, mode="valid")
+
     @pyqtSlot()
     def updatePlotData(self):
         sender = self.sender()  # type: ignore
@@ -160,15 +179,27 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.xyPlot.setTitle(  # type: ignore
             f"{self.cBoxY1Data.currentText()} & {self.cBoxY2Data.currentText()} vs {self.cBoxXData.currentText()}"
         )
+        sizeCorrection = 0
+        if self.movAvgWinSize % 2 != 0:
+            sizeCorrection = 1
+        halfWin = int(self.movAvgWinSize / 2)
         if sender is self.cBoxXData:
             self.xyPlot.setLabel("bottom", self.cBoxXData.currentText())  # type: ignore
-            self.dataX = self.df[self.cBoxXData.currentText()].tolist()
+            self.dataX = self.df[self.cBoxXData.currentText()].tolist()[halfWin + sizeCorrection : -halfWin + 1]
+
         elif sender is self.cBoxY1Data:
             self.xyPlot.setLabel("left", self.cBoxY1Data.currentText())  # type: ignore
-            self.dataY1 = self.df[self.cBoxY1Data.currentText()].tolist()
+            if self.cBoxY1Data.currentText() not in self.digSigColNames:
+                self.dataY1 = self.movAvgConvolve(self.df[self.cBoxY1Data.currentText()].tolist(), self.movAvgWinSize)
+            else:
+                self.dataY1 = self.df[self.cBoxY1Data.currentText()].tolist()[halfWin + sizeCorrection : -halfWin + 1]
+
         elif sender is self.cBoxY2Data:
             self.xyPlot.setLabel("right", self.cBoxY2Data.currentText())  # type: ignore
-            self.dataY2 = self.df[self.cBoxY2Data.currentText()].tolist()
+            if self.cBoxY2Data.currentText() not in self.digSigColNames:
+                self.dataY2 = self.movAvgConvolve(self.df[self.cBoxY2Data.currentText()].tolist(), self.movAvgWinSize)
+            else:
+                self.dataY2 = self.df[self.cBoxY2Data.currentText()].tolist()[halfWin + sizeCorrection : -halfWin + 1]
 
         self.y1LineRef.setData(self.dataX, self.dataY1)  # Update the Y1 line data ref
         self.y2LineRef.setData(self.dataX, self.dataY2)  # Update the Y2 line data ref
@@ -216,13 +247,13 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
         self.cBoxY2Data.setModel(self.cBoxY2DataModel)
         self.cBoxY2Data.setCurrentIndex(1)
 
-    def updateCrosshair(self, event):
+    def mouseMoved(self, event):
         # event[0] holds a positional argument
         pos = event[0]
         if self.XYGraph.sceneBoundingRect().contains(pos):
             mousePoint = self.XYGraph.getPlotItem().vb.mapSceneToView(pos)  # type: ignore
-            self.crosshair_v.setPos(mousePoint.x())
-            self.crosshair_h.setPos(mousePoint.y())
+            self.vCrosshair.setPos(mousePoint.x())
+            self.hCrosshair.setPos(mousePoint.y())
 
     def onGraphClick(self, event):
         # items = self.xyPlot.scene().items(event.scenePos())  # type: ignore
@@ -236,6 +267,7 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
             # myTimeZone = pytz.timezone("Europe/Prague")
             # dateTimeWithTimeZone = myTimeZone.localize(xVal2DateTime)
 
+            # TODO Verify loaded data?
             if self.testActivated:
                 self.clickDataX += [mousePoint.x()]
                 self.clickDataY += [mousePoint.y()]
@@ -376,8 +408,8 @@ class XYGraphTab(QWidget, Ui_XYGraphTab):
     def updateSetpointError(self):
         unit = "kvar" if self.cBoxY1Data.currentText().find("kvar") != -1 else "kW"
         self.dblSpinBoxSetpoint.setSuffix(" " + unit)
-        self.setpoint = self.dblSpinBoxSetpoint.value()
-        self.labelSetpointErrVal.setText(f"{100*(self.processVarMaxVal - self.setpoint)/self.setpoint:.3f} %")
+        self.pwrSetpoint = self.dblSpinBoxSetpoint.value()
+        self.labelSetpointErrVal.setText(f"{100*(self.processVarMaxVal - self.pwrSetpoint)/self.pwrSetpoint:.3f} %")
 
     # # TODO: Finish saving the data
     def saveMeasuredData(self):

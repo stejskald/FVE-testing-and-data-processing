@@ -127,6 +127,34 @@
         </widget>
        </item>
        <item>
+        <widget class="QPushButton" name="btnShowAutoReconnect">
+         <property name="text">
+          <string>Show &amp;Auto Reconnection</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnShowGradient">
+         <property name="text">
+          <string>Show &amp;Gradient</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnShowTimeDelay">
+         <property name="text">
+          <string>Show &amp;Time Delay</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnShowSetpointError">
+         <property name="text">
+          <string>Show &amp;Setpoint Error</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="btnShowPQdiagram">
          <property name="text">
           <string>Show &amp;PQ Diagram</string>
@@ -230,6 +258,13 @@
  <tabstops>
   <tabstop>btnImportCSV</tabstop>
   <tabstop>btnShowCSVtable</tabstop>
+  <tabstop>btnShowXYgraph</tabstop>
+  <tabstop>btnShowAutoReconnect</tabstop>
+  <tabstop>btnShowGradient</tabstop>
+  <tabstop>btnShowTimeDelay</tabstop>
+  <tabstop>btnShowSetpointError</tabstop>
+  <tabstop>btnShowPQdiagram</tabstop>
+  <tabstop>btnGenerateFinalReports</tabstop>
  </tabstops>
  <resources/>
  <connections/>

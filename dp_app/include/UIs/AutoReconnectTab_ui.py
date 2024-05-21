@@ -139,6 +139,8 @@ class Ui_AutoReconnectTab(object):
 
         self.retranslateUi(AutoReconnectTab)
         QtCore.QMetaObject.connectSlotsByName(AutoReconnectTab)
+        AutoReconnectTab.setTabOrder(self.btnAutoReconnect, self.textTestInfo)
+        AutoReconnectTab.setTabOrder(self.textTestInfo, self.XYGraph)
 
     def retranslateUi(self, AutoReconnectTab):
         _translate = QtCore.QCoreApplication.translate
@@ -148,10 +150,10 @@ class Ui_AutoReconnectTab(object):
         self.labelGradient.setText(_translate("AutoReconnectTab", "Gradient:"))
         self.labelGradientVal.setText(_translate("AutoReconnectTab", "?"))
         self.labelSystemDelayVal.setText(_translate("AutoReconnectTab", "?"))
-        self.labelRiseTime.setToolTip(_translate("AutoReconnectTab", "The rise time indicates the time elapsed during the rise from 0 % to 100 % of the setpoint value."))
-        self.labelRiseTime.setText(_translate("AutoReconnectTab", "Rise time:"))
+        self.labelRiseTime.setToolTip(_translate("AutoReconnectTab", "The reach time indicates the time elapsed during the rise from 0 % to 100 % of the setpoint value."))
+        self.labelRiseTime.setText(_translate("AutoReconnectTab", "Reach time:"))
         self.labelRiseTimeVal.setText(_translate("AutoReconnectTab", "?"))
-        self.labelSystemDelay.setToolTip(_translate("AutoReconnectTab", "The system delay represents the time that elapses between the execution of the control command and the response of the controlled system."))
-        self.labelSystemDelay.setText(_translate("AutoReconnectTab", "System delay:"))
+        self.labelSystemDelay.setToolTip(_translate("AutoReconnectTab", "The time delay represents the time that elapses between the execution of the control command and the response of the controlled system."))
+        self.labelSystemDelay.setText(_translate("AutoReconnectTab", "Time delay:"))
         self.labelMeasDate.setText(_translate("AutoReconnectTab", "Measurement date:"))
 from pyqtgraph import PlotWidget

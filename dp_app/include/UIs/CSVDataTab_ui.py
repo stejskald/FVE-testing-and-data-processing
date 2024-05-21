@@ -12,9 +12,9 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_CSVDataTab(object):
     def setupUi(self, CSVDataTab):
         CSVDataTab.setObjectName("CSVDataTab")
-        CSVDataTab.resize(517, 386)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(CSVDataTab)
-        self.horizontalLayout.setObjectName("horizontalLayout")
+        CSVDataTab.resize(573, 423)
+        self.verticalLayout = QtWidgets.QVBoxLayout(CSVDataTab)
+        self.verticalLayout.setObjectName("verticalLayout")
         self.tableView = QtWidgets.QTableView(parent=CSVDataTab)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Policy.Preferred, QtWidgets.QSizePolicy.Policy.Preferred)
         sizePolicy.setHorizontalStretch(1)
@@ -23,7 +23,8 @@ class Ui_CSVDataTab(object):
         self.tableView.setSizePolicy(sizePolicy)
         self.tableView.setFocusPolicy(QtCore.Qt.FocusPolicy.NoFocus)
         self.tableView.setObjectName("tableView")
-        self.horizontalLayout.addWidget(self.tableView)
+        self.tableView.verticalHeader().setDefaultSectionSize(24)
+        self.verticalLayout.addWidget(self.tableView)
 
         self.retranslateUi(CSVDataTab)
         QtCore.QMetaObject.connectSlotsByName(CSVDataTab)

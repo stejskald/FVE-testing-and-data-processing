@@ -1,7 +1,6 @@
 from include.UIs.AutoReconnectTab_ui import Ui_AutoReconnectTab
-from dp_app.include.pgTimeAxis import DateAxisItem
 from PyQt6.QtCore import Qt, pyqtSlot
-from PyQt6.QtGui import QPalette
+from PyQt6.QtGui import QPalette, QPainterPath, QFont, QTransform, QColor
 from PyQt6.QtWidgets import QWidget
 import pyqtgraph as pg
 import dp_app.include.fileTools as ft
@@ -9,8 +8,11 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from os import path
+from collections import namedtuple
 
 appBaseDir = path.abspath(path.join(__file__, "../.."))
+
+TextSymbol = namedtuple("TextSymbol", "label symbol scale")
 
 
 class AutoReconnectTab(QWidget, Ui_AutoReconnectTab):
@@ -21,70 +23,44 @@ class AutoReconnectTab(QWidget, Ui_AutoReconnectTab):
         # Read settings from configuration file
         self.readConfig()
 
-        # Set background colour - default window color background
-        xyGraphBGcolor = self.palette().color(QPalette.ColorRole.Base)
-        self.XYGraph.setBackground(xyGraphBGcolor)
-        self.XYGraph.setTitle("Graph Title", color="k", size="16pt")
-        self.XYGraph.addLegend(offset=10)
+        # # Set background color - default window color background
+        # xyGraphBGcolor = self.palette().color(QPalette.ColorRole.Base)
+        # self.XYGraph.setBackground(xyGraphBGcolor)
+        # self.XYGraph.addLegend(offset=10)
 
-        self.xyPlot = self.XYGraph.getPlotItem()
-        self.xyPlot.setTitle("XY Graph")  # type: ignore
+        # Get Plot Item from UI
+        self.xyPlotItem = self.XYGraph.getPlotItem()
+        self.y1ViewBox = self.xyPlotItem.getViewBox()  # type: ignore
+        self.xyPlotItem.setTitle("XY Graph")  # type: ignore
 
-        self.penY1 = pg.mkPen(color="#4393c3", width=2, style=Qt.PenStyle.SolidLine)
-        self.penY2 = pg.mkPen(color="#b2182b", width=2, style=Qt.PenStyle.SolidLine)
+        self.formatPlots()
 
-        self.xLabelStyles = {"font": "Times", "font-size": "12pt"}
-        self.y1LabelStyles = {"color": "#4393c3", "font": "Times", "font-size": "12pt"}
-        self.y2LabelStyles = {"color": "#b2182b", "font": "Times", "font-size": "12pt"}
+        # Setup a SignalProxy and connect it to a mouseMoved method
+        # Whenever the mouse is moved over the plot, the mouseMoved is called with an event as an argument
+        self.proxy = pg.SignalProxy(self.XYGraph.scene().sigMouseMoved, rateLimit=60, slot=self.mouseMoved)
 
-        # X-Axis (DateTime)
-        self.xAxis = pg.DateAxisItem(orientation="bottom")
-        self.xyPlot.setAxisItems({"bottom": self.xAxis})  # type: ignore
-        self.xyPlot.showGrid(x=True, y=True, alpha=0.5)  # type: ignore
+        # Connect sigMouseClicked signal of pItem1 to onGraphClick method
+        self.xyPlotItem.scene().sigMouseClicked.connect(self.onGraphClick)  # type: ignore
 
         # Create a new ViewBox, link the right axis to its coordinate system
-        self.viewBoxY2 = pg.ViewBox()
-        self.xyPlot.showAxis("right")  # type: ignore
-        self.xyPlot.scene().addItem(self.viewBoxY2)  # type: ignore
-        self.xyPlot.getAxis("right").linkToView(self.viewBoxY2)  # type: ignore
-        self.viewBoxY2.setXLink(self.xyPlot)
+        self.y2ViewBox = pg.ViewBox()
+        self.xyPlotItem.showAxis("right")  # type: ignore
+        self.xyPlotItem.scene().addItem(self.y2ViewBox)  # type: ignore
+        self.xyPlotItem.getAxis("right").linkToView(self.y2ViewBox)  # type: ignore
+        self.y2ViewBox.setXLink(self.xyPlotItem)
 
-        # Add crosshair lines
-        crosshairPen = pg.mkPen(color="#648200", width=1, style=Qt.PenStyle.SolidLine)  # #c0ff00
-        self.crosshair_v = pg.InfiniteLine(angle=90, pen=crosshairPen)
-        self.crosshair_h = pg.InfiniteLine(angle=0, pen=crosshairPen)
-        self.XYGraph.addItem(self.crosshair_v, ignoreBounds=True)  # type: ignore
-        self.XYGraph.addItem(self.crosshair_h, ignoreBounds=True)  # type: ignore
-
-        # Setup a SignalProxy and connect it to a updateCrosshair method
-        # Whenever the mouse is moved over the plot, the updateCrosshair is called with an event as an argument
-        self.proxy = pg.SignalProxy(self.XYGraph.scene().sigMouseMoved, rateLimit=60, slot=self.updateCrosshair)
-
-        # Hide the cursor over the plot
-        cursor = Qt.CursorShape.BlankCursor
-        self.XYGraph.setCursor(cursor)
-
-        self.viewBoxY1 = self.xyPlot.getViewBox()  # type: ignore
-        self.xyPlot.scene().sigMouseClicked.connect(self.onGraphClick)  # type: ignore
-
-        # self.xyPlot.sigRangeChanged.connect(self.update_time_axis_range)
-
+        # Connect btnAutoReconnect button to testButtonPressed method
         self.btnAutoReconnect.clicked.connect(self.testButtonPressed)
+
+        # Init Tab variables
         self.testActivated = False
+        self.seqCount = 0
         self.clickCount = 0
         self.clickDataX = []
         self.clickDataY = []
+        self.ptsPerSeq = 3
 
     def readConfig(self):
-        # Read the mean_interval_length from the INI config file
-        self.meanIntervalLength = int(
-            ft.iniReadSectionKey(
-                path.join(appBaseDir, "appConfig.ini"),
-                "app.xy_graph",
-                "mean_interval_length",
-            )
-        )
-
         # Read the real_power_3ph from the INI config file
         self.realPower3ph = ft.iniReadSectionKey(
             path.join(appBaseDir, "appConfig.ini"),
@@ -93,11 +69,138 @@ class AutoReconnectTab(QWidget, Ui_AutoReconnectTab):
         )
 
         # Read the right_axis_digital_signal from the INI config file
-        self.axisY2Signal = ft.iniReadSectionKey(
+        self.y2AxisSignal = ft.iniReadSectionKey(
             path.join(appBaseDir, "appConfig.ini"),
             "app.auto_connect",
             "right_axis_digital_signal",
         )
+
+        # Read the real_power_3ph_nominal from the INI config file
+        self.realPwr3phNom = float(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.auto_connect",
+                "real_power_3ph_nominal",
+            )
+        )
+
+        # Read the moving_avg_window_size from the INI config file
+        self.movAvgWinSize = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.auto_connect",
+                "moving_avg_window_size",
+            )
+        )
+
+        # Read the zoom_ratio from the INI config file
+        self.zoomRatio = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.auto_connect",
+                "zoom_ratio",
+            )
+        )
+
+        # Read the click_point_symbol from the INI config file
+        self.clickPtSymbol = ft.iniReadSectionKey(
+            path.join(appBaseDir, "appConfig.ini"),
+            "app.plots",
+            "click_point_symbol",
+        )
+
+        # Read the click_point_symbol_size from the INI config file
+        self.clickPtSymbolSize = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.plots",
+                "click_point_symbol_size",
+            )
+        )
+
+        # Read the click_point_x_offset from the INI config file
+        self.clickPtOffsetX = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.plots",
+                "click_point_x_offset",
+            )
+        )
+
+        # Read the click_point_y_offset from the INI config file
+        self.clickPtOffsetY = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.plots",
+                "click_point_y_offset",
+            )
+        )
+
+        # Read the click_point_label_size from the INI config file
+        self.clickPtLabelSize = int(
+            ft.iniReadSectionKey(
+                path.join(appBaseDir, "appConfig.ini"),
+                "app.plots",
+                "click_point_label_size",
+            )
+        )
+
+    def formatPlots(self):
+        # Set background color - default window color background
+        plotBGcolor = self.palette().color(QPalette.ColorRole.Base)
+        self.XYGraph.setBackground(plotBGcolor)
+        self.XYGraph.addLegend(offset=10)
+
+        # Define plot colors
+        self.plotColors = ["#4393C3", "#B2182B"]
+
+        # Define label styles for all axes
+        self.xLabelStyle = {"font": "Times", "font-size": "12pt"}
+        self.yLabelStyles = [{"color": color, "font": "Times", "font-size": "12pt"} for color in self.plotColors]
+
+        # X-Axes - Set as pg.DateAxisItem
+        self.XYGraph.setAxisItems({"bottom": pg.DateAxisItem(orientation="bottom")})
+
+        # Turn on the grids
+        self.XYGraph.showGrid(x=True, y=True, alpha=0.6)  # type: ignore
+
+        # Define pen style for each plot
+        self.yPens = [pg.mkPen(color=color, width=2, style=Qt.PenStyle.SolidLine) for color in self.plotColors]
+
+        # Define, create and add crosshair lines
+        self.crosshairColors = ["#648200", "#FFDE59", "#C0FF00"]
+        crosshairPen = pg.mkPen(color=self.crosshairColors[0], width=1, style=Qt.PenStyle.SolidLine)
+
+        self.hCrosshair = pg.InfiniteLine(angle=0, pen=crosshairPen)
+        self.vCrosshair = pg.InfiniteLine(angle=90, pen=crosshairPen)
+
+        self.XYGraph.addItem(self.vCrosshair, ignoreBounds=True)  # type: ignore
+        self.XYGraph.addItem(self.hCrosshair, ignoreBounds=True)  # type: ignore
+
+        # Define and add cursor label
+        self.cursorLabel = pg.TextItem(anchor=(-0.02, 1))
+        self.XYGraph.addItem(self.cursorLabel, ignoreBounds=True)  # type: ignore
+
+        # Set cursor over the plots as small cross
+        self.XYGraph.setCursor(Qt.CursorShape.CrossCursor)
+
+        # Init Scatter Plot Items for symbol and text inserting to plot area
+        self.scatterPoints = pg.ScatterPlotItem(
+            symbol=self.clickPtSymbol,
+            pen=pg.mkPen(None),
+            brush=pg.mkBrush(QColor("black")),
+            size=self.clickPtSymbolSize,
+            hoverable=True,
+        )
+        self.y1ViewBox.addItem(self.scatterPoints)  # type: ignore
+
+        self.scatterLabels = pg.ScatterPlotItem(
+            pen=pg.mkPen(None),  # QColor("black"), width=2
+            brush=QColor("black"),
+            size=self.clickPtLabelSize,
+        )
+        self.y1ViewBox.addItem(self.scatterLabels)  # type: ignore
+        # self.scatterLabels.sigClicked.connect(self.scatterPointsClicked)
 
     def loadData(self, dataFrame):
         # Get name of the first column with "Time"
@@ -109,36 +212,50 @@ class AutoReconnectTab(QWidget, Ui_AutoReconnectTab):
 
         self.processData()
 
-        # series to list
-        self.dataX = self.df[self.timeColName].tolist()
-        self.dataY1 = self.df[self.realPower3ph].tolist()
-        self.dataY2 = self.df[self.axisY2Signal].tolist()
+        # series to lists
+        self.xData = self.df[self.timeColName].tolist()[: int(self.df.shape[0] / self.zoomRatio)]
+        self.yData = [
+            self.df[self.realPower3ph].tolist()[: int(self.df.shape[0] / self.zoomRatio)],
+            self.df[self.y2AxisSignal].tolist()[: int(self.df.shape[0] / self.zoomRatio)],
+        ]
 
-        self.xyPlot.setTitle(f"{self.realPower3ph} & {self.axisY2Signal} vs {self.timeColName}")  # type: ignore
+        # lists averaging
+        sizeCorrection = 0
+        if self.movAvgWinSize % 2 != 0:
+            sizeCorrection = 1
+        halfWin = int(self.movAvgWinSize / 2)
+        self.xData = self.xData[halfWin + sizeCorrection : -halfWin + 1]
+        self.yData[0] = self.movAvgConvolve(self.yData[0], self.movAvgWinSize)
+        self.yData[1] = self.yData[1][halfWin + sizeCorrection : -halfWin + 1]
 
-        # Y1-Axis
-        self.xyPlot.setLabel("left", self.realPower3ph, **self.y1LabelStyles)  # type: ignore
+        self.xyPlotItem.setTitle(f"P [kW] & Button [] vs {self.timeColName}")  # type: ignore
 
+        # X-Axis
+        self.xyPlotItem.setLabel("bottom", self.timeColName, **self.xLabelStyle)  # type: ignore
+        # self.xyPlotItem.getAxis("bottom").enableAutoSIPrefix(False)  # type: ignore
+
+        # Y-Axes
+        self.yNames = ["P [kW]", "Button []"]
+
+        self.xyPlotItem.setLabel("left", "P [kW]", **self.yLabelStyles[0])  # type: ignore
         # Check if the y1LineRef exists (if Import CSV is called multiple times)
         if hasattr(self, "y1LineRef"):
-            self.xyPlot.removeItem(self.y1LineRef)  # type: ignore
-        self.y1LineRef = self.XYGraph.plot(self.dataX, self.dataY1, pen=self.penY1, name=self.realPower3ph)
+            self.xyPlotItem.removeItem(self.y1LineRef)  # type: ignore
+        self.y1LineRef = self.XYGraph.plot(self.xData, self.yData[0], pen=self.yPens[0], name="P [kW]")
 
-        # Y2-Axis
-        self.xyPlot.setLabel("right", self.axisY2Signal, **self.y2LabelStyles)  # type: ignore
+        self.xyPlotItem.setLabel("right", self.yNames[1], **self.yLabelStyles[1])  # type: ignore
         if hasattr(self, "y2LineRef"):
-            self.viewBoxY2.removeItem(self.y2LineRef)  # type: ignore
-            self.xyPlot.legend.removeItem(self.y2LineRef)  # type: ignore
-        self.y2LineRef = pg.PlotCurveItem(pen=self.penY2, name=self.axisY2Signal)
-        self.viewBoxY2.addItem(self.y2LineRef)
-        self.y2LineRef.setData(self.dataX, self.dataY2)
-        self.changeLegendLabel(self.xyPlot, self.y2LineRef, self.axisY2Signal)
+            self.y2ViewBox.removeItem(self.y2LineRef)  # type: ignore
+            self.xyPlotItem.legend.removeItem(self.y2LineRef)  # type: ignore
+        self.y2LineRef = pg.PlotCurveItem(pen=self.yPens[1], name=self.yNames[1])
+        self.y2ViewBox.addItem(self.y2LineRef)
+        self.y2LineRef.setData(self.xData, self.yData[1])
+        self.changeLegendLabel(self.xyPlotItem, self.y2LineRef, self.yNames[1])
 
-        # X-Axis (DateTime)
-        self.xyPlot.setLabel("bottom", self.timeColName, **self.xLabelStyles)  # type: ignore
-        self.xyPlot.getAxis("bottom").enableAutoSIPrefix(False)  # type: ignore
+        # Hide the cursor over the plot
+        self.XYGraph.setCursor(Qt.CursorShape.BlankCursor)
 
-        self.xyPlot.getViewBox().sigResized.connect(self.updateViews)  # type: ignore
+        self.xyPlotItem.getViewBox().sigResized.connect(self.updateViews)  # type: ignore
 
         self.updateViews()
 
@@ -146,78 +263,114 @@ class AutoReconnectTab(QWidget, Ui_AutoReconnectTab):
         # Convert datetime to timestamp
         self.df[self.timeColName] = self.df[self.timeColName].apply(pd.Timestamp.timestamp)
 
+    def movAvgConvolve(self, array, n=10):
+        weights = np.ones(n) / n
+        return np.convolve(array, weights, mode="valid")
+
     # Handle view resizing
     @pyqtSlot()
     def updateViews(self):
         # View has resized; update auxiliary views to match
-        self.viewBoxY2.setGeometry(self.xyPlot.getViewBox().sceneBoundingRect())  # type: ignore
+        self.y2ViewBox.setGeometry(self.xyPlotItem.getViewBox().sceneBoundingRect())  # type: ignore
 
         # Need to re-update linked axes since this was called incorrectly while views had different shapes
         # (probably this should be handled in ViewBox.resizeEvent)
-        self.viewBoxY2.linkedViewChanged(self.xyPlot.getViewBox(), self.viewBoxY2.XAxis)  # type: ignore
+        self.y2ViewBox.linkedViewChanged(self.xyPlotItem.getViewBox(), self.y2ViewBox.XAxis)  # type: ignore
 
-    def updateCrosshair(self, event):
+    def mouseMoved(self, event):
         # event[0] holds a positional argument
         pos = event[0]
-        if self.XYGraph.sceneBoundingRect().contains(pos):
-            mousePoint = self.XYGraph.getPlotItem().vb.mapSceneToView(pos)  # type: ignore
-            self.crosshair_v.setPos(mousePoint.x())
-            self.crosshair_h.setPos(mousePoint.y())
+        # Checks if data has been loaded
+        if hasattr(self, "xData"):
+            if self.XYGraph.sceneBoundingRect().contains(pos):
+                mousePoint = self.XYGraph.getPlotItem().vb.mapSceneToView(pos)  # type: ignore
+
+                # Find closest index of clicked value
+                xClosestVal = min(self.xData, key=lambda x: abs(x - mousePoint.x()))
+                index = self.xData.index(xClosestVal)
+                if 0 < index < len(self.xData):
+                    # Update cursorLabel text
+                    self.cursorLabel.setText(
+                        f"x={datetime.fromtimestamp(self.xData[index]).strftime('%H:%M:%S.%f')}, "
+                        + f"y={self.yData[0][index]:0.3f}",
+                        color="k",
+                    )
+                    self.cursorLabel.setPos(mousePoint.x(), mousePoint.y())
+                    self.hCrosshair.setPos(mousePoint.y())
+                    self.vCrosshair.setPos(mousePoint.x())
 
     def onGraphClick(self, event):
-        # items = self.xyPlot.scene().items(event.scenePos())  # type: ignore
+        # items = self.xyPlotItem.scene().items(event.scenePos())  # type: ignore
         # print(items)  # All clicked items
-        mousePoint = self.viewBoxY1.mapSceneToView(event._scenePos)  # type: ignore
-        # print(mousePoint.x(), mousePoint.y())
-        if self.xyPlot.sceneBoundingRect().contains(event._scenePos):  # type: ignore
-            mousePoint = self.viewBoxY1.mapSceneToView(event._scenePos)  # type: ignore
+        if self.xyPlotItem.sceneBoundingRect().contains(event._scenePos):  # type: ignore
+            mousePoint = self.y1ViewBox.mapSceneToView(event._scenePos)  # type: ignore
             # # Convert obtained float value to datetime with time zone info
             # xVal2DateTime = pd.to_datetime(mousePoint.x(), unit="s")
             # myTimeZone = pytz.timezone("Europe/Prague")
             # dateTimeWithTimeZone = myTimeZone.localize(xVal2DateTime)
 
-            if self.testActivated:
-                self.clickDataX += [mousePoint.x()]
-                self.clickDataY += [mousePoint.y()]
-                self.clickCount += 1
-                if self.clickCount < 3:
-                    self.textTestInfo.setPlainText(f"{3-self.clickCount} clicks to graph remaining...")
-                else:
-                    self.clickCount = 0
-                    self.btnAutoReconnect.setChecked(False)
-                    self.testActivated = False
-                    self.textTestInfo.setPlainText("Test completed")
+            if hasattr(self, "xData"):
+                xClosestVal = min(self.xData, key=lambda x: abs(x - mousePoint.x()))
+                index = self.xData.index(xClosestVal)
 
-                    # Process Data
-                    self.labelSystemDelayVal.setText(f"{self.getSystemDelay(self.clickDataX):.3f} s")
-                    self.labelGradientVal.setText(f"{self.getGradient(self.clickDataX, self.clickDataY):.3f} kW/s")
-                    self.labelRiseTimeVal.setText(f"{self.getRiseTime(self.clickDataX, self.clickDataY):.3f} s")
+                if self.testActivated and 0 < index < len(self.xData):
+                    self.clickDataX += [self.xData[index]]
+                    self.clickDataY += [self.yData[0][index]]
+                    self.clickCount += 1
+                    if self.clickCount < self.ptsPerSeq:
+                        self.textTestInfo.setPlainText(f"{self.ptsPerSeq-self.clickCount} clicks to graph remaining...")
+                    else:
+                        self.clickCount = 0
+                        self.btnAutoReconnect.setChecked(False)
+                        self.testActivated = False
+                        self.textTestInfo.setPlainText("Test completed")
 
-                    # Save lists to 2D array and clean lists
-                    self.autoReconnectTestResults = np.array(
-                        [
-                            [datetime.fromtimestamp(item).strftime("%H:%M:%S.%f") for item in self.clickDataX],
+                        # Process Data
+                        self.labelSystemDelayVal.setText(f"{self.getTimeDelay(self.clickDataX)/60:.3f} min")
+                        self.labelGradientVal.setText(
+                            f"{self.getGradient(self.clickDataX, self.clickDataY)/self.realPwr3phNom*6000:.2f} %Pn/min"
+                        )
+                        self.labelRiseTimeVal.setText(f"{self.getRiseTime(self.clickDataX)/60:.3f} min")
+
+                        # Update scatterPoints data points
+                        actStartIdx = self.seqCount * self.ptsPerSeq + 1
+                        self.scatterPoints.setData(
+                            self.clickDataX,
                             self.clickDataY,
+                            data=[actStartIdx + i for i in range(len(self.clickDataX))],
+                        )
+
+                        # Update scatterLabels data points
+                        self.scatterLabels.clear()
+                        actStartIdx = self.seqCount * self.ptsPerSeq + 1
+                        spots = [
+                            {
+                                "pos": [
+                                    self.clickDataX[i] + self.clickPtOffsetX,
+                                    self.clickDataY[i] + self.clickPtOffsetY,
+                                ],
+                                "symbol": label[1],
+                            }
+                            for (i, label) in [
+                                (i, self.createLabel(str(actStartIdx + i), 0)) for i in range(len(self.clickDataX))
+                            ]
                         ]
-                    )
-                    print(f"{self.autoReconnectTestResults}")
+                        self.scatterLabels.addPoints(spots)
+
+                        self.seqCount += 1
 
     @pyqtSlot(bool)
     def testButtonPressed(self, btnState):
         self.testActivated = btnState
         self.clickCount = 0
+        # Clean lists
         self.clickDataX = []
         self.clickDataY = []
+
         if btnState:
-            self.textTestInfo.setPlainText("3 clicks to graph remaining...")
+            self.textTestInfo.setPlainText(f"{self.ptsPerSeq} clicks to graph remaining...")
         else:
             self.textTestInfo.clear()
-
-    def update_time_axis_range(self):
-        # time_axis = self.xyPlot.getAxis("bottom")
-        # # x_range = time_axis.range if x_range[1] - x_range[0] > 10: new_range = (x_range[1] - 10, x_range[1])
-        # time_axis.setXRange(self.dataX[0], self.dataX[-1] / 4)
-        pass
 
     def changeLegendLabel(self, plot, plotItem, name):
         # Change the label of given PlotDataItem in the plot's legend
@@ -227,27 +380,37 @@ class AutoReconnectTab(QWidget, Ui_AutoReconnectTab):
     def setMeasurementDate(self, measDate):
         self.labelMeasDateValue.setText(measDate)
 
-    def getSystemDelay(self, dataX):
+    def getTimeDelay(self, dataX):
         return dataX[1] - dataX[0]
 
     def getGradient(self, dataX, dataY):
         return (dataY[-1] - dataY[-2]) / (dataX[-1] - dataX[-2])  # in (kW/kvar) / sec
 
-    # TODO Implement finding the rise point and taking only interval 10% -> 90%
-    def getRiseTime(self, dataX, dataY):
+    def getRiseTime(self, dataX):
         return dataX[-1] - dataX[-2]
 
+    def createLabel(self, label, angle):
+        symbol = QPainterPath()
+        symbol.addText(-0.5, 0.5, QFont("Times", 12), label)
+        br = symbol.boundingRect()
+        scale = min(1.0 / br.width(), 1.0 / br.height())
+        tr = QTransform()
+        tr.scale(scale, scale)
+        tr.rotate(angle)
+        tr.translate(-br.x() - br.width() / 2.0, -br.y() - br.height() / 2.0)
+        return TextSymbol(label, tr.map(symbol), 0.1 / scale)
+
     # # TODO: Finish saving the data
-    def saveMeasuredData(self):
-        # dataToSave = [
-        #     self.labelSystemDelayVal.text(),
-        #     self.labelGradientVal.text(),
-        #     self.labelRiseTimeVal.text(),
-        #     self.labelSetpointErrVal.text(),
-        # ]
+    # def saveMeasuredData(self):
+    #     # dataToSave = [
+    #     #     self.labelSystemDelayVal.text(),
+    #     #     self.labelGradientVal.text(),
+    #     #     self.labelRiseTimeVal.text(),
+    #     #     self.labelSetpointErrVal.text(),
+    #     # ]
 
-        # x = np.linspace(0, 1, 201)
-        # y = np.random.random(201)
+    #     # x = np.linspace(0, 1, 201)
+    #     # y = np.random.random(201)
 
-        # np.savetxt("testData.dat", [x, y])
-        pass
+    #     # np.savetxt("testData.dat", [x, y])
+    #     pass

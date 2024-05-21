@@ -12,7 +12,7 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 class Ui_XYGraphTab(object):
     def setupUi(self, XYGraphTab):
         XYGraphTab.setObjectName("XYGraphTab")
-        XYGraphTab.resize(784, 800)
+        XYGraphTab.resize(784, 884)
         self.verticalLayout = QtWidgets.QVBoxLayout(XYGraphTab)
         self.verticalLayout.setObjectName("verticalLayout")
         self.gridLayoutTop = QtWidgets.QGridLayout()
@@ -252,6 +252,10 @@ class Ui_XYGraphTab(object):
         XYGraphTab.setTabOrder(self.cBoxY2Data, self.checkBox)
         XYGraphTab.setTabOrder(self.checkBox, self.dblSpinBoxSetpoint)
         XYGraphTab.setTabOrder(self.dblSpinBoxSetpoint, self.XYGraph)
+        XYGraphTab.setTabOrder(self.XYGraph, self.btnAutoRephase)
+        XYGraphTab.setTabOrder(self.btnAutoRephase, self.btnGradient)
+        XYGraphTab.setTabOrder(self.btnGradient, self.btnRiseTime)
+        XYGraphTab.setTabOrder(self.btnRiseTime, self.btnProcessVarMaxVal)
 
     def retranslateUi(self, XYGraphTab):
         _translate = QtCore.QCoreApplication.translate

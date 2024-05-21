@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>784</width>
-    <height>800</height>
+    <height>884</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -577,6 +577,10 @@
   <tabstop>checkBox</tabstop>
   <tabstop>dblSpinBoxSetpoint</tabstop>
   <tabstop>XYGraph</tabstop>
+  <tabstop>btnAutoRephase</tabstop>
+  <tabstop>btnGradient</tabstop>
+  <tabstop>btnRiseTime</tabstop>
+  <tabstop>btnProcessVarMaxVal</tabstop>
  </tabstops>
  <resources/>
  <connections/>
